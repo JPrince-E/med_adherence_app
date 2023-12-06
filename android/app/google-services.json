@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "175085076301",
+    "project_id": "med-app-7b6e1",
+    "storage_bucket": "med-app-7b6e1.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:175085076301:android:6b815de3ac0015fcf74104",
+        "android_client_info": {
+          "package_name": "com.example.med_adhenrence_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCOScVfc5TlVdg9ZEYjeHtocyvv5z8h0RU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
