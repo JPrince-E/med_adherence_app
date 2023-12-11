@@ -16,10 +16,11 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-
   late Timer _timer;
   RxString formattedTime = RxString('');
   RxString formattedDate = RxString('');
+
+  late String medicationTime = '';
 
   bool isToTake = true;
 
@@ -56,6 +57,7 @@ class _HomePageState extends State<HomePage> {
   String times = '';
   String colour = '';
 
+
   retrieveMedInfo() async {
     FirebaseFirestore.instance
         .collection("schedule")
@@ -71,6 +73,8 @@ class _HomePageState extends State<HomePage> {
           noOfDays = snapshot.data()!["noOfDays"];
           times = snapshot.data()!["times"];
           colour = snapshot.data()!["colour"];
+
+          medicationTime = snapshot.data()!["medicationTime"];
         });
       }
     });
@@ -78,19 +82,16 @@ class _HomePageState extends State<HomePage> {
 
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
 
     retrieveUserInfo();
     retrieveMedInfo();
 
-    // Set up a periodic timer to update the time every minute
     _timer = Timer.periodic(const Duration(minutes: 1), (Timer timer) {
       _updateTime();
     });
 
     _updateTime();
-
   }
 
   void _updateTime() {
@@ -103,10 +104,8 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-
   @override
   Widget build(BuildContext context) {
-
     double screenHeight = MediaQuery.of(context).size.height;
 
     return Scaffold(
@@ -149,7 +148,6 @@ class _HomePageState extends State<HomePage> {
                   style: const TextStyle(
                       fontSize: 25, fontWeight: FontWeight.bold),
                 )),
-
                 CircleAvatar(
                   backgroundImage: NetworkImage(imageProfile),
                   radius: 45,
@@ -171,7 +169,6 @@ class _HomePageState extends State<HomePage> {
                   child: const Text(
                     "Drugs To Take",
                     style: TextStyle(
-                      // color: Colors.grey,
                       fontWeight: FontWeight.bold,
                       fontSize: 14,
                     ),
@@ -179,9 +176,6 @@ class _HomePageState extends State<HomePage> {
                 ),
                 const Text(
                   "   |   ",
-                  style: TextStyle(
-                      // color: Colors.grey,
-                      ),
                 ),
                 TextButton(
                   onPressed: () {
@@ -192,7 +186,6 @@ class _HomePageState extends State<HomePage> {
                   child: const Text(
                     "Drugs Taken",
                     style: TextStyle(
-                      // color: Colors.grey,
                       fontWeight: FontWeight.bold,
                       fontSize: 14,
                     ),
@@ -201,10 +194,8 @@ class _HomePageState extends State<HomePage> {
               ],
             ),
             isToTake
-                ? _view(screenHeight * 0.56)
-                : Container(
-                    color: Colors.red,
-                  ),
+                ? _viewToTake(screenHeight * 0.56)
+                : _viewTaken(screenHeight * 0.56)
           ],
         ),
       ),
@@ -212,7 +203,7 @@ class _HomePageState extends State<HomePage> {
   }
 }
 
-Widget _view(double height) {
+Widget _viewToTake(double height) {
   return SingleChildScrollView(
     child: SizedBox(
       height: height,
@@ -220,103 +211,198 @@ Widget _view(double height) {
         stream: FirebaseFirestore.instance.collection('schedule').snapshots(),
         builder: (context, AsyncSnapshot snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            print("...");
             return const Center(child: CircularProgressIndicator());
           } else if (!snapshot.hasData || snapshot.data.docs.isEmpty) {
-            print("1");
             return const Center(
               child: Text("No Schedule Available"),
             );
           } else {
-
-            print("Data retrieved: ${snapshot.data.docs.toString()}");
-
-            // Helper function to calculate the absolute difference in minutes
-            int _calculateDifference(TimeOfDay a, TimeOfDay b) {
-              int differenceInMinutesA = a.hour * 60 + a.minute;
-              int differenceInMinutesB = b.hour * 60 + b.minute;
-              return (differenceInMinutesA - differenceInMinutesB).abs();
-            }
-
             List<Medication> medicationsList = [];
             for (var med in snapshot.data.docs) {
               medicationsList.add(Medication.fromDataSnapshot(med));
-              print("Med times length = ${Medication.fromDataSnapshot(med).times.length}");
             }
 
-            medicationsList.sort((a, b) {
-              TimeOfDay now = TimeOfDay.now();
-              int differenceA = _calculateDifference(a.times[0], now);
-              int differenceB = _calculateDifference(b.times[0], now);
-              return differenceA.compareTo(differenceB);
-            });
+            List<Medication> drugsToTake = [];
+            List<Medication> drugsTaken = [];
 
-            print("2");
-            return ListView.builder(
-              itemCount: snapshot.data.docs.length ?? 0,
-              itemBuilder: (context, index) {
-                Medication medication = Medication.fromDataSnapshot(snapshot.data.docs[index]);
+            DateTime now = DateTime.now();
 
-                String hexColor = medication.colour;
-                return Card(
-                  color: Colors.blue.shade200,
-                  margin: const EdgeInsets.all(10),
-                  child: ListTile(
-                    contentPadding:
-                        const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                    leading: CircleAvatar(
-                      radius: 30,
-                      backgroundColor: Color(
-                          int.parse(hexColor.substring(1, 7), radix: 16) +
-                              0xFF000000),
-                      child: CircleAvatar(
-                        radius: 20,
-                        backgroundColor: Color(
-                            int.parse(hexColor.substring(1, 7), radix: 16) +
-                                0xFF000000),
-                        backgroundImage: const AssetImage("images/logo.png"),
-                      ),
-                    ),
-                    title: Text(
-                      medication.medicationName,
-                      style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
-                    ),
-                    subtitle: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          medication.selectedAmount,
-                          style: const TextStyle(
-                              fontSize: 16, fontWeight: FontWeight.normal),
-                        ),
-                        Text(
-                          medication.selectedDose,
-                          style: const TextStyle(
-                              fontSize: 16, fontWeight: FontWeight.normal),
-                        ),
-                      ],
-                    ),
-                    trailing: IconButton(
-                      icon: const Icon(Icons.edit, color: Colors.white),
-                      onPressed: () {
-                        // Handle edit button click
-                        Get.to(const EditSchedule());
-                      },
-                    ),
-                    onTap: () {
-                      // Handle card tap
-                    },
-                  ),
-                );
-              },
+            for (var med in medicationsList) {
+              List<TimeOfDay> medicationTimes = med.times;
+
+              if (medicationTimes.isNotEmpty) {
+                bool shouldAddToDrugsToTake = false;
+                for (var time in medicationTimes) {
+                  DateTime medicationDateTime = DateTime(
+                    now.year,
+                    now.month,
+                    now.day,
+                    time.hour,
+                    time.minute,
+                  );
+
+                  if (medicationDateTime.isAfter(now)) {
+                    shouldAddToDrugsToTake = true;
+                  } else {
+                    drugsTaken.add(med);
+                  }
+                }
+
+                if (shouldAddToDrugsToTake) {
+                  drugsToTake.add(med);
+                }
+              }
+            }
+
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                _buildMedicationList("Drugs To Take", drugsToTake),
+                const SizedBox(height: 16.0),
+              ],
             );
           }
         },
       ),
+    ),
+  );
+}
+
+Widget _viewTaken(double height) {
+  return SingleChildScrollView(
+    child: SizedBox(
+      height: height,
+      child: StreamBuilder(
+        stream: FirebaseFirestore.instance.collection('schedule').snapshots(),
+        builder: (context, AsyncSnapshot snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          } else if (!snapshot.hasData || snapshot.data.docs.isEmpty) {
+            return const Center(
+              child: Text("No Schedule Available"),
+            );
+          } else {
+            List<Medication> medicationsList = [];
+            for (var med in snapshot.data.docs) {
+              medicationsList.add(Medication.fromDataSnapshot(med));
+            }
+
+            List<Medication> drugsTaken = [];
+
+            DateTime now = DateTime.now();
+
+            for (var med in medicationsList) {
+              List<TimeOfDay> medicationTimes = med.times;
+
+              if (medicationTimes.isNotEmpty) {
+                bool shouldAddToDrugsToTake = false;
+                for (var time in medicationTimes) {
+                  DateTime medicationDateTime = DateTime(
+                    now.year,
+                    now.month,
+                    now.day,
+                    time.hour,
+                    time.minute,
+                  );
+
+                  if (medicationDateTime.isAfter(now)) {
+                    shouldAddToDrugsToTake = true;
+                  } else {
+                    drugsTaken.add(med);
+                  }
+                }
+              }
+            }
+
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                _buildMedicationList("Drugs Taken", drugsTaken),
+                const SizedBox(height: 16.0),
+              ],
+            );
+          }
+        },
+      ),
+    ),
+  );
+}
+
+Widget _buildMedicationList(String title, List<Medication> medications) {
+  String? medicationTime;
+  return Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      const SizedBox(height: 8.0),
+      if (medications.isNotEmpty)
+        ...medications.map((medication) =>
+            _buildMedicationCard(medication, medicationTime)),
+      if (medications.isEmpty)
+        const Center(
+          child: Text("No Medication in this category"),
+        ),
+    ],
+  );
+}
+
+Widget _buildMedicationCard(Medication medication, String? medicationTime) {
+  String hexColor = medication.colour;
+  return Card(
+    color: Colors.blue.shade200,
+    margin: const EdgeInsets.all(10),
+    child: ListTile(
+      contentPadding:
+      const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      leading: CircleAvatar(
+        radius: 30,
+        backgroundColor: Color(
+            int.parse(hexColor.substring(1, 7), radix: 16) + 0xFF000000),
+        child: CircleAvatar(
+          radius: 20,
+          backgroundColor: Color(
+              int.parse(hexColor.substring(1, 7), radix: 16) + 0xFF000000),
+          backgroundImage: const AssetImage("images/logo.png"),
+        ),
+      ),
+      title: Text(
+        medication.medicationName,
+        style: const TextStyle(
+          fontSize: 18,
+          fontWeight: FontWeight.bold,
+          color: Colors.white,
+        ),
+      ),
+      subtitle: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            medication.selectedAmount,
+            style: const TextStyle(
+                fontSize: 16, fontWeight: FontWeight.normal),
+          ),
+          Text(
+            medication.selectedDose,
+            style: const TextStyle(
+                fontSize: 16, fontWeight: FontWeight.normal),
+          ),
+          if (medicationTime != null)
+            Text(
+              'Time: $medicationTime', // Display the medication time
+              style: const TextStyle(
+                  fontSize: 16, fontWeight: FontWeight.normal),
+            ),
+        ],
+      ),
+      trailing: IconButton(
+        icon: const Icon(Icons.edit, color: Colors.white),
+        onPressed: () {
+          // Handle edit button click
+          Get.to(const EditSchedule());
+        },
+      ),
+      onTap: () {
+        // Handle card tap
+      },
     ),
   );
 }
