@@ -82,7 +82,7 @@ class _HomePageState extends State<HomePage> {
     super.initState();
 
     retrieveUserInfo();
-    retrieveMedInfo();
+    // retrieveMedInfo();
 
     // Set up a periodic timer to update the time every minute
     _timer = Timer.periodic(const Duration(minutes: 1), (Timer timer) {
@@ -228,12 +228,33 @@ Widget _view(double height) {
               child: Text("No Schedule Available"),
             );
           } else {
+
+            print("Data retrieved: ${snapshot.data.docs.toString()}");
+
+            // Helper function to calculate the absolute difference in minutes
+            int _calculateDifference(TimeOfDay a, TimeOfDay b) {
+              int differenceInMinutesA = a.hour * 60 + a.minute;
+              int differenceInMinutesB = b.hour * 60 + b.minute;
+              return (differenceInMinutesA - differenceInMinutesB).abs();
+            }
+
+            List<Medication> medicationsList = [];
+            for (var med in snapshot.data.docs) {
+              medicationsList.add(Medication.fromDataSnapshot(med));
+              print("Med times length = ${Medication.fromDataSnapshot(med).times.length}");
+            }
+            medicationsList.sort((a, b) {
+              TimeOfDay now = TimeOfDay.now();
+              int differenceA = _calculateDifference(a.times[0], now);
+              int differenceB = _calculateDifference(b.times[0], now);
+              return differenceA.compareTo(differenceB);
+            });
+
             print("2");
             return ListView.builder(
               itemCount: snapshot.data.docs.length ?? 0,
               itemBuilder: (context, index) {
-                Medication medication =
-                    Medication.fromDataSnapshot(snapshot.data.docs[index]);
+                Medication medication = Medication.fromDataSnapshot(snapshot.data.docs[index]);
 
                 String hexColor = medication.colour;
                 return Card(

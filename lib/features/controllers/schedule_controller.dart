@@ -52,6 +52,7 @@ class ScheduleController extends GetxController {
 
     showModalBottomSheet(
       context: context,
+      isDismissible: false,
       builder: (BuildContext builder) {
         return StatefulBuilder(
           builder: (BuildContext context, StateSetter setState) {
@@ -67,18 +68,20 @@ class ScheduleController extends GetxController {
                     itemHeight: 80,
                     isForce2Digits: true,
                     onTimeChange: (time) {
-                      if (time is TimeOfDay) {
                         setState(() {
-                          selectedTimeTemp.value = time as TimeOfDay;
+                          selectedTimeTemp.value = TimeOfDay.fromDateTime(time);
                         });
-                      }
+                        update();
+                        print("Time chnaged to: ${time.toString()} - ${selectedTimeTemp.value}");
                     },
+
                   ),
                   ElevatedButton(
                     onPressed: () {
                       selectedTime[fieldIndex] = selectedTimeTemp;
                       Get.back();
                       update();
+                      print("selectedTime: ${selectedTime}");
                     },
                     child: const Text('Save'),
                   ),
