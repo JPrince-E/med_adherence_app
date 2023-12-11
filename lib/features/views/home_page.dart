@@ -82,7 +82,7 @@ class _HomePageState extends State<HomePage> {
     super.initState();
 
     retrieveUserInfo();
-    // retrieveMedInfo();
+    retrieveMedInfo();
 
     // Set up a periodic timer to update the time every minute
     _timer = Timer.periodic(const Duration(minutes: 1), (Timer timer) {
@@ -243,6 +243,7 @@ Widget _view(double height) {
               medicationsList.add(Medication.fromDataSnapshot(med));
               print("Med times length = ${Medication.fromDataSnapshot(med).times.length}");
             }
+
             medicationsList.sort((a, b) {
               TimeOfDay now = TimeOfDay.now();
               int differenceA = _calculateDifference(a.times[0], now);

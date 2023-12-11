@@ -22,19 +22,24 @@ class Medication {
     required this.uid,
   });
 
-  static Medication fromDataSnapshot(DocumentSnapshot snapshot) {
+  // Updated factory method
+  factory Medication.fromDataSnapshot(DocumentSnapshot snapshot) {
     var dataSnapshot = snapshot.data() as Map<String, dynamic>;
 
     List<TimeOfDay> timesList = (dataSnapshot["times"] as List<dynamic>)
         .map((timeString) {
-      // Parse each timeString to TimeOfDay
-      List<String> timeParts = timeString.split(':');
-      return TimeOfDay(
-        hour: int.parse(timeParts[0]),
-        minute: int.parse(timeParts[1]),
-      );
-    })
-        .toList();
+      // Extract hours and minutes from the string
+      final matches = RegExp(r'(\d+):(\d+)').firstMatch(timeString);
+      if (matches != null && matches.groupCount == 2) {
+        // Parse each timeString to TimeOfDay
+        int hours = int.parse(matches.group(1)!);
+        int minutes = int.parse(matches.group(2)!);
+        return TimeOfDay(hour: hours, minute: minutes);
+      } else {
+        // Handle the case where the timeString format is incorrect
+        throw FormatException('Invalid time format: $timeString');
+      }
+    }).toList();
 
     return Medication(
       uid: dataSnapshot["uid"],
@@ -47,16 +52,4 @@ class Medication {
       colour: dataSnapshot["colour"],
     );
   }
-
-  Map<String, dynamic> toJson() => {
-    "uid": uid,
-    "medicationName": medicationName,
-    "selectedAmount": selectedAmount,
-    "selectedDose": selectedDose,
-    "noOfTimes": noOfTimes,
-    "noOfDays": noOfDays,
-    // Convert List<TimeOfDay> to List<String> for Firestore storage
-    "times": times.map((time) => '${time.hour}:${time.minute}').toList(),
-    "colour": colour,
-  };
 }
