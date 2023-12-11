@@ -7,6 +7,8 @@ import 'package:intl/intl.dart';
 import 'package:med_adherence_app/features/models/medication_model.dart';
 import 'package:med_adherence_app/features/views/edit_schedule.dart';
 import 'package:med_adherence_app/global.dart';
+import 'package:collection/collection.dart';
+
 
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
@@ -56,7 +58,6 @@ class _HomePageState extends State<HomePage> {
   String noOfDays = '';
   String times = '';
   String colour = '';
-
 
   retrieveMedInfo() async {
     FirebaseFirestore.instance
@@ -144,10 +145,10 @@ class _HomePageState extends State<HomePage> {
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
                 Obx(() => Text(
-                  "$formattedDate\n${formattedTime.value}",
-                  style: const TextStyle(
-                      fontSize: 25, fontWeight: FontWeight.bold),
-                )),
+                      "$formattedDate\n${formattedTime.value}",
+                      style: const TextStyle(
+                          fontSize: 25, fontWeight: FontWeight.bold),
+                    )),
                 CircleAvatar(
                   backgroundImage: NetworkImage(imageProfile),
                   radius: 45,
@@ -254,12 +255,14 @@ Widget _viewToTake(double height) {
               }
             }
 
-            return Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                _buildMedicationList("Drugs To Take", drugsToTake),
-                const SizedBox(height: 16.0),
-              ],
+            return SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  _buildMedicationList("Drugs To Take", drugsToTake),
+                  const SizedBox(height: 16.0),
+                ],
+              ),
             );
           }
         },
@@ -314,12 +317,14 @@ Widget _viewTaken(double height) {
               }
             }
 
-            return Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                _buildMedicationList("Drugs Taken", drugsTaken),
-                const SizedBox(height: 16.0),
-              ],
+            return SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  _buildMedicationList("Drugs Taken", drugsTaken),
+                  const SizedBox(height: 16.0),
+                ],
+              ),
             );
           }
         },
@@ -328,81 +333,149 @@ Widget _viewTaken(double height) {
   );
 }
 
+
 Widget _buildMedicationList(String title, List<Medication> medications) {
   String? medicationTime;
-  return Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      const SizedBox(height: 8.0),
-      if (medications.isNotEmpty)
-        ...medications.map((medication) =>
-            _buildMedicationCard(medication, medicationTime)),
-      if (medications.isEmpty)
-        const Center(
-          child: Text("No Medication in this category"),
-        ),
-    ],
+  return SingleChildScrollView(
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SizedBox(height: 8.0),
+        if (medications.isNotEmpty)
+          ...medications.map(
+              (medication) => _buildMedicationCard(medication)),
+        if (medications.isEmpty)
+          const Center(
+            child: Text("No Medication in this category"),
+          ),
+      ],
+    ),
   );
 }
 
-Widget _buildMedicationCard(Medication medication, String? medicationTime) {
+Widget _buildMedicationCard(Medication medication) {
   String hexColor = medication.colour;
+
+  // Extract the relevant time directly from the medication object
+  TimeOfDay? relevantTime = medication.times.isNotEmpty ? medication.times.first : null;
+
+
   return Card(
     color: Colors.blue.shade200,
     margin: const EdgeInsets.all(10),
-    child: ListTile(
-      contentPadding:
-      const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-      leading: CircleAvatar(
-        radius: 30,
-        backgroundColor: Color(
-            int.parse(hexColor.substring(1, 7), radix: 16) + 0xFF000000),
-        child: CircleAvatar(
-          radius: 20,
-          backgroundColor: Color(
-              int.parse(hexColor.substring(1, 7), radix: 16) + 0xFF000000),
-          backgroundImage: const AssetImage("images/logo.png"),
-        ),
-      ),
-      title: Text(
-        medication.medicationName,
-        style: const TextStyle(
-          fontSize: 18,
-          fontWeight: FontWeight.bold,
-          color: Colors.white,
-        ),
-      ),
-      subtitle: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            medication.selectedAmount,
-            style: const TextStyle(
-                fontSize: 16, fontWeight: FontWeight.normal),
-          ),
-          Text(
-            medication.selectedDose,
-            style: const TextStyle(
-                fontSize: 16, fontWeight: FontWeight.normal),
-          ),
-          if (medicationTime != null)
-            Text(
-              'Time: $medicationTime', // Display the medication time
-              style: const TextStyle(
-                  fontSize: 16, fontWeight: FontWeight.normal),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        ListTile(
+          contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+          leading: CircleAvatar(
+            radius: 30,
+            backgroundColor: Color(int.parse(hexColor.substring(1, 7), radix: 16) + 0xFF000000),
+            child: CircleAvatar(
+              radius: 20,
+              backgroundColor: Color(int.parse(hexColor.substring(1, 7), radix: 16) + 0xFF000000),
+              backgroundImage: const AssetImage("images/logo.png"),
             ),
-        ],
-      ),
-      trailing: IconButton(
-        icon: const Icon(Icons.edit, color: Colors.white),
-        onPressed: () {
-          // Handle edit button click
-          Get.to(const EditSchedule());
-        },
-      ),
-      onTap: () {
-        // Handle card tap
-      },
+          ),
+          title: Text(
+            medication.medicationName,
+            style: const TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+            ),
+          ),
+          subtitle: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.start,
+                children: [
+                  Text(
+                    medication.selectedAmount,
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.normal,
+                    ),
+                  ),
+                  const SizedBox(
+                    width: 1,
+                  ),
+                  Text(
+                    medication.selectedDose,
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.normal,
+                    ),
+                  ),
+                  if (relevantTime != null)
+                    Text(
+                      'Time: ${_formatTime(relevantTime)}', // Display the relevant time
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.normal,
+                      ),
+                    ),
+                ],
+              ),
+              if (relevantTime != null)
+                Text(
+                  'Relevant Time: ${_formatTime(relevantTime)}',
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.normal,
+                  ),
+                ),
+            ],
+          ),
+          trailing: IconButton(
+            onPressed: () {
+              // Handle "Edit" button click
+              Get.to(const EditSchedule());
+            },
+            icon: Icon(Icons.edit, color: Colors.white),
+          ),
+          onTap: () {
+            // Handle card tap
+          },
+        ),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
+            IconButton(
+              onPressed: () {
+                // Handle "Mark as Not Taken" button click
+                // Move medication back to "Drugs To Take"
+                _markAsNotTaken(medication);
+              },
+              icon: Icon(Icons.cancel, color: Colors.red),
+            ),
+            IconButton(
+              onPressed: () {
+                // Handle "Mark as Taken" button click
+                // Move medication to "Drugs Taken"
+                _markAsTaken(medication);
+              },
+              icon: Icon(Icons.check_circle, color: Colors.green),
+            ),
+          ],
+        ),
+      ],
     ),
   );
+}
+
+String _formatTime(TimeOfDay time) {
+  return '${time.hour}:${time.minute.toString().padLeft(2, '0')}';
+}
+
+
+void _markAsTaken(Medication medication) {
+  // Add logic to mark medication as taken and move it to "Drugs Taken"
+  // You can update the Firestore data or use other state management solutions
+}
+
+void _markAsNotTaken(Medication medication) {
+  // Add logic to mark medication as not taken and move it back to "Drugs To Take"
+  // You can update the Firestore data or use other state management solutions
 }

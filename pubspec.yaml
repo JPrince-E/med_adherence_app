@@ -47,6 +47,7 @@ dependencies:
   timezone:
   flutter_time_picker_spinner:
   flutter_local_notifications:
+  collection:
 
 dev_dependencies:
   flutter_test:
