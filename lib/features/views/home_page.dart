@@ -6,8 +6,8 @@ import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'package:med_adherence_app/features/models/medication_model.dart';
 import 'package:med_adherence_app/features/views/edit_schedule.dart';
-import 'package:med_adherence_app/features/views/emergency_settings.dart';
 import 'package:med_adherence_app/global.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 
 class HomePage extends StatefulWidget {
@@ -152,17 +152,41 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
-  void _markAsTaken(Medication medication) {
-    // Add logic to mark medication as taken
-    // Update Firestore or use other state management solutions
-    // For example, you might want to remove the medication from the "Drugs To Take" list
-    // and add it to the "Drugs Taken" list in your data structure.
-    // For illustration, assuming you have a list of medications in the state:
-    // medicationsToTake.remove(medication);
-    // medicationsTaken.add(medication);
-    // Update Firestore or use other state management solutions accordingly
-  }
+  void makeEmergencyCall() async {
+    DocumentSnapshot emergencyContactSnapshot = await FirebaseFirestore.instance
+        .collection("emergencyContacts")
+        .doc(currentUserID)
+        .get();
 
+    print('Emergency Contact Snapshot: ${emergencyContactSnapshot.data()}');
+
+    if (emergencyContactSnapshot.exists && emergencyContactSnapshot.data() != null) {
+      Map<String, dynamic> emergencyData = emergencyContactSnapshot.data() as Map<String, dynamic>;
+
+      if (emergencyData.containsKey('number')) {
+        String emergencyNumber = emergencyData['number'];
+
+        if (emergencyNumber.isNotEmpty) {
+          try {
+            await launch('tel:$emergencyNumber');
+            print('Could launch $emergencyNumber');
+          } catch (e) {
+            print('Error launching $emergencyNumber: $e');
+            // Provide user feedback here if needed
+          }
+        } else {
+          print('Emergency contact number is null or empty');
+          // Provide user feedback here if needed
+        }
+      } else {
+        print('Invalid data format for emergency contact in the database');
+        // Provide user feedback here if needed
+      }
+    } else {
+      print('Emergency contact not found in the database');
+      // Provide user feedback here if needed
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -186,8 +210,7 @@ class _HomePageState extends State<HomePage> {
           const Text("Emergency"),
           IconButton(
             onPressed: () {
-              Get.to(EmergencyScreen());
-              // Handle emergency button press
+              makeEmergencyCall();
             },
             icon: const Icon(
               Icons.contact_emergency,
@@ -458,7 +481,7 @@ Widget _buildMedicationCard(Medication medication, TimeOfDay time, bool isToTake
                 // Move medication back to "Drugs To Take"
                 _markAsNotTaken(medication);
               },
-              icon: Icon(Icons.cancel, color: Colors.red),
+              icon: const Icon(Icons.cancel, color: Colors.red),
             ),
             IconButton(
               onPressed: () {
@@ -466,7 +489,7 @@ Widget _buildMedicationCard(Medication medication, TimeOfDay time, bool isToTake
                 // Move medication to "Drugs Taken"
                 _markAsTaken(medication);
               },
-              icon: Icon(Icons.check_circle, color: Colors.green),
+              icon: const Icon(Icons.check_circle, color: Colors.green),
             ),
           ],
         ),
