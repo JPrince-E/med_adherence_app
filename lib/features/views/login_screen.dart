@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
+import 'package:go_router/go_router.dart';
 import 'package:med_adherence_app/features/controllers/auth_controller.dart';
 import 'package:med_adherence_app/features/views/sign_up.dart';
 
@@ -11,9 +13,6 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  TextEditingController fullNameTextEditingController = TextEditingController();
-  TextEditingController emailTextEditingController = TextEditingController();
-  TextEditingController passwordTextEditingController = TextEditingController();
 
   bool showProgressBar = false;
 
@@ -67,14 +66,14 @@ class _LoginScreenState extends State<LoginScreen> {
 
                   const SizedBox(height: 20),
                   TextField(
-                    controller: emailTextEditingController,
+                    controller: authController.emailController,
                     decoration: const InputDecoration(
                       labelText: 'Email',
                     ),
                   ),
                   const SizedBox(height: 20),
                   TextField(
-                    controller: passwordTextEditingController,
+                    controller: authController.passwordController,
                     decoration: const InputDecoration(
                       labelText: 'Password',
                     ),
@@ -84,23 +83,25 @@ class _LoginScreenState extends State<LoginScreen> {
 
                   const SizedBox(height: 20),
                   ElevatedButton(
-                    onPressed: () async{
-                      if(emailTextEditingController.text.trim().isNotEmpty && passwordTextEditingController.text.trim().isNotEmpty) {
-                        setState(() {
-                          showProgressBar = true;
-                        });
-
-                        await authController.loginUser(
-                          emailTextEditingController.text.trim(),
-                          passwordTextEditingController.text.trim(),
-                        );
-
-                        setState(() {
-                          showProgressBar = false;
-                        });
-                      } else {
-                        Get.snackbar("Email or Password is Missing", "Please fill all fields");
-                      }
+                    onPressed: () {
+                      SystemChannels.textInput.invokeMethod('TextInput.hide');
+                      authController.attemptToSignInUser(context);
+                      // if(authController.emailController.text.trim().isNotEmpty && authController.passwordController.text.trim().isNotEmpty) {
+                      //   setState(() {
+                      //     showProgressBar = true;
+                      //   });
+                      //
+                      //   await authController.loginUser(
+                      //     authController.emailController.text.trim(),
+                      //     authController.passwordController.text.trim(),
+                      //   );
+                      //
+                      //   setState(() {
+                      //     showProgressBar = false;
+                      //   });
+                      // } else {
+                      //   Get.snackbar("Email or Password is Missing", "Please fill all fields");
+                      // }
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.blue.shade200,
@@ -125,7 +126,8 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                       InkWell(
                         onTap: () {
-                          Get.to(SignUpScreen());
+                          // Get.to(SignUpScreen());
+                          context.push('/signUp');
                         },
                         child: const Text(
                           "Create Here",

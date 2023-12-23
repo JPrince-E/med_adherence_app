@@ -1,8 +1,11 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'package:med_adherence_app/features/views/emergency_settings.dart';
 import 'package:med_adherence_app/features/views/home_page.dart';
 import 'package:med_adherence_app/features/views/notification_screen.dart';
+import 'package:med_adherence_app/features/views/profile_screen.dart';
 import 'package:med_adherence_app/features/views/schedule_screen.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -24,6 +27,7 @@ class _HomeScreenState extends State<HomeScreen> {
     HomePage(),
     ScheduleScreen(userID: FirebaseAuth.instance.currentUser!.uid,),
     NotificationScreen(),
+    ProfileScreen(userID: FirebaseAuth.instance.currentUser!.uid,),
   ];
 
   String fullName = '';
@@ -80,6 +84,7 @@ class _HomeScreenState extends State<HomeScreen> {
               leading: const Icon(Icons.contact_emergency,),
               title: const Text('Emergency'),
               onTap: () {
+                Get.to(EmergencyScreen());
                 setState(() {
                   screenIndex = 0;
                   Navigator.pop(context); // Close the drawer
@@ -127,6 +132,13 @@ class _HomeScreenState extends State<HomeScreen> {
           BottomNavigationBarItem(
             icon: Icon(
               Icons.notifications,
+              size: 30,
+            ),
+            label: "",
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(
+              Icons.person,
               size: 30,
             ),
             label: "",

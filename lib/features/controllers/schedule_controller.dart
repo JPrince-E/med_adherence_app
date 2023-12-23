@@ -6,7 +6,7 @@ import 'package:get/get.dart';
 
 class ScheduleController extends GetxController {
   static ScheduleController get to => Get.find();
-  FirebaseFirestore firestore = FirebaseFirestore.instance;
+  FirebaseFirestore ref = FirebaseFirestore.instance;
 
   final TextEditingController medicationNameController =
   TextEditingController();
@@ -101,7 +101,7 @@ class ScheduleController extends GetxController {
       for (int i = 0; i < selectedTime.length; i++) {
         timeStrings.add(selectedTime[i].value.toString());
       }
-      await firestore.collection('schedule').add({
+      await ref.collection('schedule').add({
         "medicationName": medicationNameController.text.trim(),
         "selectedAmount": selectedAmount.value,
         "selectedDose": selectedDose.value,
@@ -127,8 +127,4 @@ class ScheduleController extends GetxController {
       print(" >>>>>>>>>>>> Exception occurred: ${e.toString()}");
     }
   }
-
-
 }
-
-

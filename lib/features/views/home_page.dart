@@ -6,8 +6,8 @@ import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'package:med_adherence_app/features/models/medication_model.dart';
 import 'package:med_adherence_app/features/views/edit_schedule.dart';
+import 'package:med_adherence_app/features/views/emergency_settings.dart';
 import 'package:med_adherence_app/global.dart';
-import 'package:collection/collection.dart';
 
 
 class HomePage extends StatefulWidget {
@@ -17,12 +17,22 @@ class HomePage extends StatefulWidget {
   State<HomePage> createState() => _HomePageState();
 }
 
+String _formatTime(TimeOfDay time) {
+  return '${time.hour}:${time.minute.toString().padLeft(2, '0')}';
+}
+
+
+bool isToTake = true;
+List<Medication> medicationsToTake = [];
+List<Medication> medicationsTaken = [];
+
 class _HomePageState extends State<HomePage> {
   late Timer _timer;
   RxString formattedTime = RxString('');
   RxString formattedDate = RxString('');
 
   late String medicationTime = '';
+
 
   bool isToTake = true;
 
@@ -102,8 +112,57 @@ class _HomePageState extends State<HomePage> {
     String newFormattedDate = DateFormat('E MMM d').format(now);
     if (formattedDate.value != newFormattedDate) {
       formattedDate.value = newFormattedDate;
+
+      // Check if the current time has passed the scheduled time for each medication
+      moveMedicationsToTaken(now);
     }
   }
+
+  void moveMedicationsToTaken(DateTime now) {
+    FirebaseFirestore.instance
+        .collection("schedule")
+        .doc(currentUserID)
+        .get()
+        .then((snapshot) {
+      if (snapshot.exists) {
+        List<Medication> medicationsList = [];
+        for (var med in snapshot.data()!["medications"]) {
+          medicationsList.add(Medication.fromDataSnapshot(med));
+        }
+
+        // Filter medications whose times have passed
+        List<Medication> medicationsToMove = medicationsList
+            .where((med) =>
+        med.times.isNotEmpty &&
+            med.times.any((time) =>
+                DateTime(now.year, now.month, now.day, time.hour, time.minute)
+                    .isBefore(now)))
+            .toList();
+
+        // Move medications to "Drugs Taken" for the specific occurrence
+        medicationsToMove.forEach((medication) {
+          medication.times.forEach((time) {
+            if (DateTime(now.year, now.month, now.day, time.hour, time.minute).isBefore(now)) {
+              // Move only the specific occurrence to "Drugs Taken"
+              _markAsTaken(medication.copyWith(times: [time])); // Update the copy of the medication with only the specific time
+            }
+          });
+        });
+      }
+    });
+  }
+
+  void _markAsTaken(Medication medication) {
+    // Add logic to mark medication as taken
+    // Update Firestore or use other state management solutions
+    // For example, you might want to remove the medication from the "Drugs To Take" list
+    // and add it to the "Drugs Taken" list in your data structure.
+    // For illustration, assuming you have a list of medications in the state:
+    // medicationsToTake.remove(medication);
+    // medicationsTaken.add(medication);
+    // Update Firestore or use other state management solutions accordingly
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -127,6 +186,7 @@ class _HomePageState extends State<HomePage> {
           const Text("Emergency"),
           IconButton(
             onPressed: () {
+              Get.to(EmergencyScreen());
               // Handle emergency button press
             },
             icon: const Icon(
@@ -145,10 +205,10 @@ class _HomePageState extends State<HomePage> {
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
                 Obx(() => Text(
-                      "$formattedDate\n${formattedTime.value}",
-                      style: const TextStyle(
-                          fontSize: 25, fontWeight: FontWeight.bold),
-                    )),
+                  "$formattedDate\n${formattedTime.value}",
+                  style: const TextStyle(
+                      fontSize: 25, fontWeight: FontWeight.bold),
+                )),
                 CircleAvatar(
                   backgroundImage: NetworkImage(imageProfile),
                   radius: 45,
@@ -223,37 +283,12 @@ Widget _viewToTake(double height) {
               medicationsList.add(Medication.fromDataSnapshot(med));
             }
 
-            List<Medication> drugsToTake = [];
-            List<Medication> drugsTaken = [];
-
             DateTime now = DateTime.now();
-
-            for (var med in medicationsList) {
-              List<TimeOfDay> medicationTimes = med.times;
-
-              if (medicationTimes.isNotEmpty) {
-                bool shouldAddToDrugsToTake = false;
-                for (var time in medicationTimes) {
-                  DateTime medicationDateTime = DateTime(
-                    now.year,
-                    now.month,
-                    now.day,
-                    time.hour,
-                    time.minute,
-                  );
-
-                  if (medicationDateTime.isAfter(now)) {
-                    shouldAddToDrugsToTake = true;
-                  } else {
-                    drugsTaken.add(med);
-                  }
-                }
-
-                if (shouldAddToDrugsToTake) {
-                  drugsToTake.add(med);
-                }
-              }
-            }
+            List<Medication> drugsToTake = medicationsList
+                .where((med) => med.times.isNotEmpty && med.times.any((time) =>
+                DateTime(now.year, now.month, now.day, time.hour, time.minute)
+                    .isAfter(now)))
+                .toList();
 
             return SingleChildScrollView(
               child: Column(
@@ -290,32 +325,12 @@ Widget _viewTaken(double height) {
               medicationsList.add(Medication.fromDataSnapshot(med));
             }
 
-            List<Medication> drugsTaken = [];
-
             DateTime now = DateTime.now();
-
-            for (var med in medicationsList) {
-              List<TimeOfDay> medicationTimes = med.times;
-
-              if (medicationTimes.isNotEmpty) {
-                bool shouldAddToDrugsToTake = false;
-                for (var time in medicationTimes) {
-                  DateTime medicationDateTime = DateTime(
-                    now.year,
-                    now.month,
-                    now.day,
-                    time.hour,
-                    time.minute,
-                  );
-
-                  if (medicationDateTime.isAfter(now)) {
-                    shouldAddToDrugsToTake = true;
-                  } else {
-                    drugsTaken.add(med);
-                  }
-                }
-              }
-            }
+            List<Medication> drugsTaken = medicationsList
+                .where((med) => med.times.isNotEmpty && med.times.any((time) =>
+                DateTime(now.year, now.month, now.day, time.hour, time.minute)
+                    .isBefore(now)))
+                .toList();
 
             return SingleChildScrollView(
               child: Column(
@@ -335,7 +350,6 @@ Widget _viewTaken(double height) {
 
 
 Widget _buildMedicationList(String title, List<Medication> medications) {
-  String? medicationTime;
   return SingleChildScrollView(
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -343,7 +357,16 @@ Widget _buildMedicationList(String title, List<Medication> medications) {
         const SizedBox(height: 8.0),
         if (medications.isNotEmpty)
           ...medications.map(
-              (medication) => _buildMedicationCard(medication)),
+                (medication) {
+              // Create a card for each time associated with the medication
+              return Column(
+                children: medication.times.map(
+                      (time) => _buildMedicationCard(medication, time, isToTake)
+
+                ).toList(),
+              );
+            },
+          ),
         if (medications.isEmpty)
           const Center(
             child: Text("No Medication in this category"),
@@ -353,12 +376,8 @@ Widget _buildMedicationList(String title, List<Medication> medications) {
   );
 }
 
-Widget _buildMedicationCard(Medication medication) {
+Widget _buildMedicationCard(Medication medication, TimeOfDay time, bool isToTake) {
   String hexColor = medication.colour;
-
-  // Extract the relevant time directly from the medication object
-  TimeOfDay? relevantTime = medication.times.isNotEmpty ? medication.times.first : null;
-
 
   return Card(
     color: Colors.blue.shade200,
@@ -399,7 +418,7 @@ Widget _buildMedicationCard(Medication medication) {
                     ),
                   ),
                   const SizedBox(
-                    width: 1,
+                    width: 30,
                   ),
                   Text(
                     medication.selectedDose,
@@ -408,24 +427,15 @@ Widget _buildMedicationCard(Medication medication) {
                       fontWeight: FontWeight.normal,
                     ),
                   ),
-                  if (relevantTime != null)
-                    Text(
-                      'Time: ${_formatTime(relevantTime)}', // Display the relevant time
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.normal,
-                      ),
-                    ),
                 ],
               ),
-              if (relevantTime != null)
-                Text(
-                  'Relevant Time: ${_formatTime(relevantTime)}',
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.normal,
-                  ),
+              Text(
+                'Time: ${_formatTime(time)}',
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.normal,
                 ),
+              ),
             ],
           ),
           trailing: IconButton(
@@ -433,7 +443,7 @@ Widget _buildMedicationCard(Medication medication) {
               // Handle "Edit" button click
               Get.to(const EditSchedule());
             },
-            icon: Icon(Icons.edit, color: Colors.white),
+            icon: const Icon(Icons.edit, color: Colors.white),
           ),
           onTap: () {
             // Handle card tap
@@ -464,11 +474,6 @@ Widget _buildMedicationCard(Medication medication) {
     ),
   );
 }
-
-String _formatTime(TimeOfDay time) {
-  return '${time.hour}:${time.minute.toString().padLeft(2, '0')}';
-}
-
 
 void _markAsTaken(Medication medication) {
   // Add logic to mark medication as taken and move it to "Drugs Taken"

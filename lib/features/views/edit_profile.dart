@@ -1,30 +1,63 @@
-import 'dart:io';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
-// import 'package:go_router/go_router.dart';
 import 'package:med_adherence_app/features/controllers/auth_controller.dart';
-import 'package:med_adherence_app/features/views/login_screen.dart';
+import 'package:med_adherence_app/global.dart';
 import 'package:med_adherence_app/utils/app_constants/app_colors.dart';
 
-class SignUpScreen extends StatefulWidget {
-  SignUpScreen({super.key});
+class EditProfile extends StatefulWidget {
+  const EditProfile({Key? key}) : super(key: key);
 
   @override
-  State<SignUpScreen> createState() => _SignUpScreenState();
+  State<EditProfile> createState() => _EditProfileState();
 }
 
-class _SignUpScreenState extends State<SignUpScreen> {
-  // Use Get.find to get the AuthController instance
+
+String fullName = '';
+String email = '';
+String imageProfile =
+    'https://firebasestorage.googleapis.com/v0/b/dating-app-a5c06.appspot.com/o/Place%20Holder%2Fprofile_avatar.jpg?alt=media&token=dea921b1-1228-47c2-bc7b-01fb05bd8e2d';
+
+
+class _EditProfileState extends State<EditProfile> {
   final AuthController authController = Get.find<AuthController>();
+
+  retrieveUserInfo() async {
+    FirebaseFirestore.instance
+        .collection("users")
+        .doc(currentUserID)
+        .get()
+        .then((snapshot) {
+      if (snapshot.exists) {
+        if (snapshot.data()!["imageProfile"] != null) {
+          setState(() {
+            imageProfile = snapshot.data()!["imageProfile"];
+          });
+        }
+        setState(() {
+          fullName = snapshot.data()!["fullName"];
+          email = snapshot.data()!["email"];
+        });
+      }
+    });
+  }
+
+  @override
+  void initState() {
+    super.initState();
+
+    retrieveUserInfo();
+  }
+
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Sign Up'),
+        title: const Text('Edit Profile'),
         centerTitle: true,
-        automaticallyImplyLeading: false,
+        automaticallyImplyLeading: true,
       ),
       body: SingleChildScrollView(
         child: Padding(
@@ -38,15 +71,15 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     // Display the selected image or an empty CircleAvatar
                     authController.imageFILE != null
                         ? CircleAvatar(
-                            radius: 80,
-                            backgroundColor: AppColors.lighterGray,
-                            backgroundImage:
-                                FileImage(authController.imageFILE!),
-                          )
+                      radius: 80,
+                      backgroundColor: AppColors.lighterGray,
+                      backgroundImage:
+                      FileImage(authController.imageFILE!),
+                    )
                         : CircleAvatar(
-                            radius: 80,
-                            backgroundColor: AppColors.lighterGray,
-                          ),
+                      radius: 80,
+                      backgroundColor: AppColors.lighterGray,
+                    ),
                     const SizedBox(height: 8),
                     ElevatedButton(
                       onPressed: () {
@@ -90,48 +123,21 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     // Sign-up button
                     ElevatedButton(
                       onPressed: () {
-                        SystemChannels.textInput.invokeMethod('TextInput.hide');
-                        authController.attemptToRegisterUser(context);
+                        // SystemChannels.textInput.invokeMethod('TextInput.hide');
+                        // authController.attemptToRegisterUser(context);
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.blue.shade200,
                       ),
-                      child: const Text('Sign Up'),
-                    ),
-                    const SizedBox(height: 16),
-                    // Already have an account? Login here button
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const Text(
-                          "Already have an account? ",
-                          style: TextStyle(
-                            fontSize: 16,
-                          ),
-                        ),
-                        InkWell(
-                          onTap: () {
-                            Get.off(const LoginScreen());
-                            // context.pushReplacement('/login');
-                          },
-                          child: const Text(
-                            "Login Here",
-                            style: TextStyle(
-                              fontSize: 18,
-                              color: Colors.blueAccent,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
-                      ],
+                      child: const Text('Edit'),
                     ),
                     const SizedBox(height: 16),
                     // Progress Indicator
                     authController.showLoading == true
                         ? const CircularProgressIndicator(
-                            valueColor:
-                                AlwaysStoppedAnimation<Color>(Colors.pink),
-                          )
+                      valueColor:
+                      AlwaysStoppedAnimation<Color>(Colors.pink),
+                    )
                         : Container(),
                   ],
                 );
