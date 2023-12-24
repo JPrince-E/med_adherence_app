@@ -1,7 +1,6 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:med_adherence_app/app/resources/app.router.dart';
 import 'package:med_adherence_app/features/api/firebase_api.dart';
 import 'package:med_adherence_app/features/controllers/auth_controller.dart';
 import 'package:med_adherence_app/features/controllers/schedule_controller.dart';
@@ -23,11 +22,11 @@ void main() async {
 
   await FirebaseApi().initNotifications();
 
-  runApp(MyApp());
+  runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
-  MyApp({super.key});
+  const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {

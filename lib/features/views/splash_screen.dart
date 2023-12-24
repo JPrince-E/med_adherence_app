@@ -6,7 +6,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
-import 'package:go_router/go_router.dart';
 import 'package:med_adherence_app/app/helpers/sharedprefs.dart';
 import 'package:med_adherence_app/app/resources/app.logger.dart';
 import 'package:med_adherence_app/features/shared/global_variables.dart';

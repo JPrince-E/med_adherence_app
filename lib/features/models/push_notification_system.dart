@@ -13,7 +13,7 @@ class PushNotificationSystem {
         .then((RemoteMessage? remoteMessage) {
       if (remoteMessage != null) {
         //open app and show notification data
-        OpenAppAndShowNotificationData(
+        openAppAndShowNotificationData(
           remoteMessage.data["userID"],
           remoteMessage.data["senderID"],
           context,
@@ -26,7 +26,7 @@ class PushNotificationSystem {
     FirebaseMessaging.onMessage.listen((RemoteMessage? remoteMessage) {
       if (remoteMessage != null) {
         //open app and show notification data
-        OpenAppAndShowNotificationData(
+        openAppAndShowNotificationData(
           remoteMessage.data["userID"],
           remoteMessage.data["senderID"],
           context,
@@ -39,7 +39,7 @@ class PushNotificationSystem {
     FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage? remoteMessage) {
       if (remoteMessage != null) {
         //open app and show notification data
-        OpenAppAndShowNotificationData(
+        openAppAndShowNotificationData(
           remoteMessage.data["userID"],
           remoteMessage.data["senderID"],
           context,
@@ -49,4 +49,4 @@ class PushNotificationSystem {
   }
 }
 
-OpenAppAndShowNotificationData(receiverID, senderID, context) async {}
+openAppAndShowNotificationData(receiverID, senderID, context) async {}

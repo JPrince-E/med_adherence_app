@@ -3,7 +3,6 @@ import 'package:go_router/go_router.dart';
 import 'package:med_adherence_app/app/services/navigation_service.dart';
 import 'package:med_adherence_app/features/views/edit_schedule.dart';
 import 'package:med_adherence_app/features/views/emergency_settings.dart';
-import 'package:med_adherence_app/features/views/home_page.dart';
 import 'package:med_adherence_app/features/views/home_screen.dart';
 import 'package:med_adherence_app/features/views/login_screen.dart';
 import 'package:med_adherence_app/features/views/sign_up.dart';

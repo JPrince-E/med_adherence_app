@@ -1,40 +1,37 @@
+// ignore_for_file: unused_import, library_prefixes, avoid_print, use_build_context_synchronously
+
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:med_adherence_app/app/helpers/sharedprefs.dart';
 import 'package:med_adherence_app/app/resources/app.logger.dart';
 import 'package:med_adherence_app/app/services/snackbar_service.dart';
-import 'package:med_adherence_app/features/models/create_account_model.dart' as personModel;
+import 'package:med_adherence_app/features/models/create_account_model.dart'
+    as personModel;
 import 'package:med_adherence_app/features/models/create_account_model.dart';
 import 'package:med_adherence_app/features/shared/global_variables.dart';
 import 'package:med_adherence_app/features/views/home_screen.dart';
 import 'package:med_adherence_app/features/views/login_screen.dart';
 
-
 var log = getLogger('CreateAuthController');
 
 class AuthController extends GetxController {
-
   TextEditingController fullNameController = TextEditingController();
   TextEditingController emailController = TextEditingController();
   TextEditingController passwordController = TextEditingController();
   AuthController();
 
   bool showLoading = false;
-  String errMessage = '',
-      userExisting = ' ';
+  String errMessage = '', userExisting = ' ';
 
   File? imageFILE;
   String? imageUrl;
-
 
   void resetValues() {
     errMessage = "";
@@ -164,7 +161,6 @@ class AuthController extends GetxController {
   //   );
   // }
 
-
   Future<String> uploadImageToStorage(File imageFile) async {
     Reference referenceStorage = FirebaseStorage.instance
         .ref()
@@ -219,7 +215,6 @@ class AuthController extends GetxController {
   //   }
   // }
 
-
   void gotoSignInUserPage(BuildContext context) {
     print('Going to sign in user page');
     resetValues();
@@ -228,15 +223,15 @@ class AuthController extends GetxController {
   }
 
   void gotoHomepage(BuildContext context) async {
-    await saveSharedPrefsStringValue(
-        "username", emailController.text.trim());
+    await saveSharedPrefsStringValue("username", emailController.text.trim());
     await saveSharedPrefsStringValue("imageProfile", imageUrl!);
     print('Going to homepage page');
     resetValues();
-    Get.off(HomeScreen(userID: FirebaseAuth.instance.currentUser!.uid,));
+    Get.off(HomeScreen(
+      userID: FirebaseAuth.instance.currentUser!.uid,
+    ));
     // context.go('/homepage');
   }
-
 
   void attemptToSignInUser(BuildContext context) {
     print('attemptToSignInUser . . .');
@@ -270,7 +265,9 @@ class AuthController extends GetxController {
       // If successful, navigate to the desired screen
       GlobalVariables.myUsername = emailController.text.trim();
       print("GlobalVariables.myUsername: ${GlobalVariables.myUsername}");
-      Get.off(() => HomeScreen(userID: FirebaseAuth.instance.currentUser!.uid,));
+      Get.off(() => HomeScreen(
+            userID: FirebaseAuth.instance.currentUser!.uid,
+          ));
       // context.pushReplacement('/homepage');
     } catch (error) {
       // Handle the authentication error
@@ -280,7 +277,6 @@ class AuthController extends GetxController {
       update();
     }
   }
-
 
   void attemptToRegisterUser(BuildContext context) {
     print('attemptToRegisterUser . . .');
@@ -308,25 +304,26 @@ class AuthController extends GetxController {
     print('checking If User Exists');
     final ref = FirebaseDatabase.instance.ref();
     final snapshot =
-    await ref.child('user_details/${emailController.text.trim()}').get();
+        await ref.child('user_details/${emailController.text.trim()}').get();
     if (snapshot.exists) {
       print("User exists: ${snapshot.value}");
       UserAccountModel userAccountModel =
-      userAccountModelFromJson(jsonEncode(snapshot.value).toString());
+          userAccountModelFromJson(jsonEncode(snapshot.value).toString());
       print(
           "UserAccountModel: ${userAccountModel.toJson()} \nUsername: ${userAccountModel.email}");
 
       userExisting = emailController.text.trim();
       showLoading = false;
       update();
-      Get.off(() => HomeScreen(userID: FirebaseAuth.instance.currentUser!.uid,));
+      Get.off(() => HomeScreen(
+            userID: FirebaseAuth.instance.currentUser!.uid,
+          ));
       // context.pushReplacement('/homepage');
     } else {
       print('User does not exist. Creating new user . . .');
       registerUser(context);
     }
   }
-
 
   Future<void> registerUser(BuildContext context) async {
     if (imageFILE != null) {
@@ -336,8 +333,8 @@ class AuthController extends GetxController {
         update();
 
         // Create the user with email and password
-        UserCredential userCredential = await FirebaseAuth.instance
-            .createUserWithEmailAndPassword(
+        UserCredential userCredential =
+            await FirebaseAuth.instance.createUserWithEmailAndPassword(
           email: emailController.text.trim(),
           password: passwordController.text.trim(),
         );
@@ -347,7 +344,8 @@ class AuthController extends GetxController {
         var file = File(imageFILE!.path);
         var snapshot = await firebaseStorage
             .ref()
-            .child('own_the_city/user_profile_images/${userCredential.user!.uid}')
+            .child(
+                'own_the_city/user_profile_images/${userCredential.user!.uid}')
             .putFile(file);
 
         // Generate download URL
@@ -372,7 +370,7 @@ class AuthController extends GetxController {
         showCustomSnackBar(
           context,
           "User ${emailController.text.trim()} created",
-              () {},
+          () {},
           Colors.green,
           1000,
         );
@@ -398,9 +396,6 @@ class AuthController extends GetxController {
       }
     }
   }
-
-
-
 
   // createUser(
   //     Person
@@ -445,22 +440,26 @@ class AuthController extends GetxController {
 
   loginUser(String emailUser, String passwordUser) async {
     try {
-      await FirebaseAuth.instance.signInWithEmailAndPassword(email: emailUser, password: passwordUser);
+      await FirebaseAuth.instance
+          .signInWithEmailAndPassword(email: emailUser, password: passwordUser);
 
       Get.snackbar("Logged in Successful", "You are logged in successfully.");
 
-      Get.off(() => HomeScreen(userID: FirebaseAuth.instance.currentUser!.uid,));
-    } catch(errorMsg) {
+      Get.off(() => HomeScreen(
+            userID: FirebaseAuth.instance.currentUser!.uid,
+          ));
+    } catch (errorMsg) {
       Get.snackbar("Login Unsuccessful", "Error occurred: $errorMsg");
     }
   }
 
   checkIfUserIsLoggedIn(User? currentUser) {
-    if(currentUser == null) {
+    if (currentUser == null) {
       Get.to(const LoginScreen());
-    }else {
-      Get.off(() => HomeScreen(userID: FirebaseAuth.instance.currentUser!.uid,));
-
+    } else {
+      Get.off(() => HomeScreen(
+            userID: FirebaseAuth.instance.currentUser!.uid,
+          ));
     }
   }
 
@@ -473,9 +472,5 @@ class AuthController extends GetxController {
     firebaseCurrentUser.bindStream(FirebaseAuth.instance.authStateChanges());
 
     ever(firebaseCurrentUser, checkIfUserIsLoggedIn);
-
   }
-
-
-
 }

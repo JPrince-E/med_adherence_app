@@ -1,14 +1,12 @@
-import 'dart:async';
+// ignore_for_file: avoid_print
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:intl/intl.dart';
 import 'package:med_adherence_app/features/models/medication_model.dart';
 import 'package:med_adherence_app/features/views/edit_schedule.dart';
 import 'package:med_adherence_app/global.dart';
 import 'package:url_launcher/url_launcher.dart';
-
 
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
@@ -21,18 +19,16 @@ String _formatTime(TimeOfDay time) {
   return '${time.hour}:${time.minute.toString().padLeft(2, '0')}';
 }
 
-
 bool isToTake = true;
 List<Medication> medicationsToTake = [];
 List<Medication> medicationsTaken = [];
 
 class _HomePageState extends State<HomePage> {
-  late Timer _timer;
+  // late Timer _timer;
   RxString formattedTime = RxString('');
   RxString formattedDate = RxString('');
 
   late String medicationTime = '';
-
 
   bool isToTake = true;
 
@@ -98,25 +94,25 @@ class _HomePageState extends State<HomePage> {
     retrieveUserInfo();
     retrieveMedInfo();
 
-    _timer = Timer.periodic(const Duration(minutes: 1), (Timer timer) {
-      _updateTime();
-    });
+    // _timer = Timer.periodic(const Duration(minutes: 1), (Timer timer) {
+    //   _updateTime();
+    // });
 
-    _updateTime();
+    // _updateTime();
   }
 
-  void _updateTime() {
-    DateTime now = DateTime.now();
-    formattedTime.value = DateFormat('h:mm a').format(now);
+  // void _updateTime() {
+  //   DateTime now = DateTime.now();
+  //   formattedTime.value = DateFormat('h:mm a').format(now);
 
-    String newFormattedDate = DateFormat('E MMM d').format(now);
-    if (formattedDate.value != newFormattedDate) {
-      formattedDate.value = newFormattedDate;
+  //   String newFormattedDate = DateFormat('E MMM d').format(now);
+  //   if (formattedDate.value != newFormattedDate) {
+  //     formattedDate.value = newFormattedDate;
 
-      // Check if the current time has passed the scheduled time for each medication
-      moveMedicationsToTaken(now);
-    }
-  }
+  //     // Check if the current time has passed the scheduled time for each medication
+  //     moveMedicationsToTaken(now);
+  //   }
+  // }
 
   void moveMedicationsToTaken(DateTime now) {
     FirebaseFirestore.instance
@@ -133,21 +129,24 @@ class _HomePageState extends State<HomePage> {
         // Filter medications whose times have passed
         List<Medication> medicationsToMove = medicationsList
             .where((med) =>
-        med.times.isNotEmpty &&
-            med.times.any((time) =>
-                DateTime(now.year, now.month, now.day, time.hour, time.minute)
+                med.times.isNotEmpty &&
+                med.times.any((time) => DateTime(
+                        now.year, now.month, now.day, time.hour, time.minute)
                     .isBefore(now)))
             .toList();
 
         // Move medications to "Drugs Taken" for the specific occurrence
-        medicationsToMove.forEach((medication) {
-          medication.times.forEach((time) {
-            if (DateTime(now.year, now.month, now.day, time.hour, time.minute).isBefore(now)) {
+        for (var medication in medicationsToMove) {
+          for (var time in medication.times) {
+            if (DateTime(now.year, now.month, now.day, time.hour, time.minute)
+                .isBefore(now)) {
               // Move only the specific occurrence to "Drugs Taken"
-              _markAsTaken(medication.copyWith(times: [time])); // Update the copy of the medication with only the specific time
+              _markAsTaken(medication.copyWith(times: [
+                time
+              ])); // Update the copy of the medication with only the specific time
             }
-          });
-        });
+          }
+        }
       }
     });
   }
@@ -160,8 +159,10 @@ class _HomePageState extends State<HomePage> {
 
     print('Emergency Contact Snapshot: ${emergencyContactSnapshot.data()}');
 
-    if (emergencyContactSnapshot.exists && emergencyContactSnapshot.data() != null) {
-      Map<String, dynamic> emergencyData = emergencyContactSnapshot.data() as Map<String, dynamic>;
+    if (emergencyContactSnapshot.exists &&
+        emergencyContactSnapshot.data() != null) {
+      Map<String, dynamic> emergencyData =
+          emergencyContactSnapshot.data() as Map<String, dynamic>;
 
       if (emergencyData.containsKey('number')) {
         String emergencyNumber = emergencyData['number'];
@@ -228,10 +229,10 @@ class _HomePageState extends State<HomePage> {
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
                 Obx(() => Text(
-                  "$formattedDate\n${formattedTime.value}",
-                  style: const TextStyle(
-                      fontSize: 25, fontWeight: FontWeight.bold),
-                )),
+                      "$formattedDate\n${formattedTime.value}",
+                      style: const TextStyle(
+                          fontSize: 25, fontWeight: FontWeight.bold),
+                    )),
                 CircleAvatar(
                   backgroundImage: NetworkImage(imageProfile),
                   radius: 45,
@@ -308,9 +309,11 @@ Widget _viewToTake(double height) {
 
             DateTime now = DateTime.now();
             List<Medication> drugsToTake = medicationsList
-                .where((med) => med.times.isNotEmpty && med.times.any((time) =>
-                DateTime(now.year, now.month, now.day, time.hour, time.minute)
-                    .isAfter(now)))
+                .where((med) =>
+                    med.times.isNotEmpty &&
+                    med.times.any((time) => DateTime(now.year, now.month,
+                            now.day, time.hour, time.minute)
+                        .isAfter(now)))
                 .toList();
 
             return SingleChildScrollView(
@@ -350,9 +353,11 @@ Widget _viewTaken(double height) {
 
             DateTime now = DateTime.now();
             List<Medication> drugsTaken = medicationsList
-                .where((med) => med.times.isNotEmpty && med.times.any((time) =>
-                DateTime(now.year, now.month, now.day, time.hour, time.minute)
-                    .isBefore(now)))
+                .where((med) =>
+                    med.times.isNotEmpty &&
+                    med.times.any((time) => DateTime(now.year, now.month,
+                            now.day, time.hour, time.minute)
+                        .isBefore(now)))
                 .toList();
 
             return SingleChildScrollView(
@@ -371,7 +376,6 @@ Widget _viewTaken(double height) {
   );
 }
 
-
 Widget _buildMedicationList(String title, List<Medication> medications) {
   return SingleChildScrollView(
     child: Column(
@@ -380,13 +384,13 @@ Widget _buildMedicationList(String title, List<Medication> medications) {
         const SizedBox(height: 8.0),
         if (medications.isNotEmpty)
           ...medications.map(
-                (medication) {
+            (medication) {
               // Create a card for each time associated with the medication
               return Column(
-                children: medication.times.map(
-                      (time) => _buildMedicationCard(medication, time, isToTake)
-
-                ).toList(),
+                children: medication.times
+                    .map((time) =>
+                        _buildMedicationCard(medication, time, isToTake))
+                    .toList(),
               );
             },
           ),
@@ -399,7 +403,8 @@ Widget _buildMedicationList(String title, List<Medication> medications) {
   );
 }
 
-Widget _buildMedicationCard(Medication medication, TimeOfDay time, bool isToTake) {
+Widget _buildMedicationCard(
+    Medication medication, TimeOfDay time, bool isToTake) {
   String hexColor = medication.colour;
 
   return Card(
@@ -409,13 +414,16 @@ Widget _buildMedicationCard(Medication medication, TimeOfDay time, bool isToTake
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         ListTile(
-          contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+          contentPadding:
+              const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
           leading: CircleAvatar(
             radius: 30,
-            backgroundColor: Color(int.parse(hexColor.substring(1, 7), radix: 16) + 0xFF000000),
+            backgroundColor: Color(
+                int.parse(hexColor.substring(1, 7), radix: 16) + 0xFF000000),
             child: CircleAvatar(
               radius: 20,
-              backgroundColor: Color(int.parse(hexColor.substring(1, 7), radix: 16) + 0xFF000000),
+              backgroundColor: Color(
+                  int.parse(hexColor.substring(1, 7), radix: 16) + 0xFF000000),
               backgroundImage: const AssetImage("images/logo.png"),
             ),
           ),

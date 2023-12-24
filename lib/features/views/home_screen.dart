@@ -1,3 +1,5 @@
+// ignore_for_file: must_be_immutable
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -24,10 +26,14 @@ class _HomeScreenState extends State<HomeScreen> {
   int screenIndex = 0;
   String senderName = "";
   List tabScreenList = [
-    HomePage(),
-    ScheduleScreen(userID: FirebaseAuth.instance.currentUser!.uid,),
-    NotificationScreen(),
-    ProfileScreen(userID: FirebaseAuth.instance.currentUser!.uid,),
+    const HomePage(),
+    ScheduleScreen(
+      userID: FirebaseAuth.instance.currentUser!.uid,
+    ),
+    const NotificationScreen(),
+    ProfileScreen(
+      userID: FirebaseAuth.instance.currentUser!.uid,
+    ),
   ];
 
   String fullName = '';
@@ -81,7 +87,9 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
             ListTile(
-              leading: const Icon(Icons.contact_emergency,),
+              leading: const Icon(
+                Icons.contact_emergency,
+              ),
               title: const Text('Emergency'),
               onTap: () {
                 Get.to(EmergencyScreen());

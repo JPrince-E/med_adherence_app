@@ -1,3 +1,5 @@
+// ignore_for_file: avoid_print
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
@@ -15,16 +17,17 @@ class Medication {
 
   Medication copyWith({List<TimeOfDay>? times}) {
     return Medication(
-      uid: this.uid,
-      medicationName: this.medicationName,
-      selectedAmount: this.selectedAmount,
-      selectedDose: this.selectedDose,
-      noOfTimes: this.noOfTimes,
-      noOfDays: this.noOfDays,
-      times: times ?? this.times,  // Replace times if provided, otherwise use the existing times
-      taken: this.taken,
-      colour: this.colour,
-      isTaken: this.isTaken,
+      uid: uid,
+      medicationName: medicationName,
+      selectedAmount: selectedAmount,
+      selectedDose: selectedDose,
+      noOfTimes: noOfTimes,
+      noOfDays: noOfDays,
+      times: times ??
+          this.times, // Replace times if provided, otherwise use the existing times
+      taken: taken,
+      colour: colour,
+      isTaken: isTaken,
     );
   }
 
@@ -34,8 +37,8 @@ class Medication {
     required this.selectedDose,
     required this.noOfTimes,
     required this.noOfDays,
-    required this.times, required
-    this.taken,
+    required this.times,
+    required this.taken,
     required this.colour,
     required this.uid,
     this.isTaken = false,

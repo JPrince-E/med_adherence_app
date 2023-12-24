@@ -1,3 +1,5 @@
+// ignore_for_file: avoid_print
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -9,7 +11,7 @@ class ScheduleController extends GetxController {
   FirebaseFirestore ref = FirebaseFirestore.instance;
 
   final TextEditingController medicationNameController =
-  TextEditingController();
+      TextEditingController();
   // final TextEditingController dosageController = TextEditingController();
   RxString selectedAmount = '1 pill'.obs;
   RxString selectedDose = '250 mg'.obs;
@@ -27,7 +29,9 @@ class ScheduleController extends GetxController {
     "#FF00FF".obs,
   ];
 
-  Color getColor(String colorHex) => Color(int.parse(colorHex.substring(1, colorHex.length), radix: 16) + 0xFF000000);
+  Color getColor(String colorHex) =>
+      Color(int.parse(colorHex.substring(1, colorHex.length), radix: 16) +
+          0xFF000000);
 
   bool showProgressBar = false;
 
@@ -62,26 +66,28 @@ class ScheduleController extends GetxController {
                 children: [
                   TimePickerSpinner(
                     is24HourMode: false,
-                    normalTextStyle: const TextStyle(fontSize: 24, color: Colors.blue),
-                    highlightedTextStyle: const TextStyle(fontSize: 24, color: Colors.black),
+                    normalTextStyle:
+                        const TextStyle(fontSize: 24, color: Colors.blue),
+                    highlightedTextStyle:
+                        const TextStyle(fontSize: 24, color: Colors.black),
                     spacing: 50,
                     itemHeight: 80,
                     isForce2Digits: true,
                     onTimeChange: (time) {
-                        setState(() {
-                          selectedTimeTemp.value = TimeOfDay.fromDateTime(time);
-                        });
-                        update();
-                        print("Time chnaged to: ${time.toString()} - ${selectedTimeTemp.value}");
+                      setState(() {
+                        selectedTimeTemp.value = TimeOfDay.fromDateTime(time);
+                      });
+                      update();
+                      print(
+                          "Time chnaged to: ${time.toString()} - ${selectedTimeTemp.value}");
                     },
-
                   ),
                   ElevatedButton(
                     onPressed: () {
                       selectedTime[fieldIndex] = selectedTimeTemp;
                       Get.back();
                       update();
-                      print("selectedTime: ${selectedTime}");
+                      print("selectedTime: $selectedTime");
                     },
                     child: const Text('Save'),
                   ),
@@ -93,7 +99,6 @@ class ScheduleController extends GetxController {
       },
     );
   }
-
 
   Future addSchedule() async {
     try {
@@ -112,8 +117,7 @@ class ScheduleController extends GetxController {
         "uid": FirebaseAuth.instance.currentUser!.uid,
       }).then((value) {
         print("Val: $value");
-        Get.snackbar("Successful",
-            "Schedule uploaded successfully.");
+        Get.snackbar("Successful", "Schedule uploaded successfully.");
       });
 
       medicationNameController.text = '';

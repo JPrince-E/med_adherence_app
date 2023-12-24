@@ -1,6 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:med_adherence_app/features/controllers/auth_controller.dart';
 import 'package:med_adherence_app/global.dart';
@@ -13,12 +12,10 @@ class EditProfile extends StatefulWidget {
   State<EditProfile> createState() => _EditProfileState();
 }
 
-
 String fullName = '';
 String email = '';
 String imageProfile =
     'https://firebasestorage.googleapis.com/v0/b/dating-app-a5c06.appspot.com/o/Place%20Holder%2Fprofile_avatar.jpg?alt=media&token=dea921b1-1228-47c2-bc7b-01fb05bd8e2d';
-
 
 class _EditProfileState extends State<EditProfile> {
   final AuthController authController = Get.find<AuthController>();
@@ -50,7 +47,6 @@ class _EditProfileState extends State<EditProfile> {
     retrieveUserInfo();
   }
 
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -71,15 +67,15 @@ class _EditProfileState extends State<EditProfile> {
                     // Display the selected image or an empty CircleAvatar
                     authController.imageFILE != null
                         ? CircleAvatar(
-                      radius: 80,
-                      backgroundColor: AppColors.lighterGray,
-                      backgroundImage:
-                      FileImage(authController.imageFILE!),
-                    )
+                            radius: 80,
+                            backgroundColor: AppColors.lighterGray,
+                            backgroundImage:
+                                FileImage(authController.imageFILE!),
+                          )
                         : CircleAvatar(
-                      radius: 80,
-                      backgroundColor: AppColors.lighterGray,
-                    ),
+                            radius: 80,
+                            backgroundColor: AppColors.lighterGray,
+                          ),
                     const SizedBox(height: 8),
                     ElevatedButton(
                       onPressed: () {
@@ -135,9 +131,9 @@ class _EditProfileState extends State<EditProfile> {
                     // Progress Indicator
                     authController.showLoading == true
                         ? const CircularProgressIndicator(
-                      valueColor:
-                      AlwaysStoppedAnimation<Color>(Colors.pink),
-                    )
+                            valueColor:
+                                AlwaysStoppedAnimation<Color>(Colors.pink),
+                          )
                         : Container(),
                   ],
                 );

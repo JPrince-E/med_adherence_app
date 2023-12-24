@@ -1,3 +1,5 @@
+// ignore_for_file: use_key_in_widget_constructors, library_private_types_in_public_api, prefer_final_fields, avoid_print, use_build_context_synchronously
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:med_adherence_app/global.dart';
@@ -10,46 +12,46 @@ class EmergencyScreen extends StatefulWidget {
 
 class _EmergencyScreenState extends State<EmergencyScreen> {
   TextEditingController _emergencyNumberController = TextEditingController();
-  final CollectionReference _emergencyContactsCollection =
-  FirebaseFirestore.instance.collection('emergencyContacts'); // Change to your collection name
-
+  final CollectionReference _emergencyContactsCollection = FirebaseFirestore
+      .instance
+      .collection('emergencyContacts'); // Change to your collection name
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Emergency Settings'),
+        title: const Text('Emergency Settings'),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
+            const Text(
               'Set Emergency Contact Number:',
               style: TextStyle(fontSize: 18),
             ),
-            SizedBox(height: 10),
+            const SizedBox(height: 10),
             TextField(
               controller: _emergencyNumberController,
               keyboardType: TextInputType.phone,
-              decoration: InputDecoration(
+              decoration: const InputDecoration(
                 labelText: 'Emergency Contact Number',
               ),
             ),
-            SizedBox(height: 20),
+            const SizedBox(height: 20),
             ElevatedButton(
               onPressed: () {
                 _saveEmergencyContact();
               },
-              child: Text('Save'),
+              child: const Text('Save'),
             ),
-            SizedBox(height: 20),
+            const SizedBox(height: 20),
             ElevatedButton(
               onPressed: () {
                 makeEmergencyCall();
               },
-              child: Text('Call Emergency'),
+              child: const Text('Call Emergency'),
             ),
           ],
         ),
@@ -69,18 +71,18 @@ class _EmergencyScreenState extends State<EmergencyScreen> {
 
         print('Emergency contact number saved: $emergencyNumber');
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Emergency contact number saved')),
+          const SnackBar(content: Text('Emergency contact number saved')),
         );
       } catch (e) {
         print('Error saving emergency contact: $e');
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error saving emergency contact')),
+          const SnackBar(content: Text('Error saving emergency contact')),
         );
       }
     } else {
       print('Invalid phone number');
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Invalid phone number')),
+        const SnackBar(content: Text('Invalid phone number')),
       );
     }
   }
@@ -92,7 +94,6 @@ class _EmergencyScreenState extends State<EmergencyScreen> {
     // return RegExp(r'^\d{10}$').hasMatch(number);
     return true; // For simplicity, assuming all numbers are valid
   }
-
 
   String sanitizePhoneNumber(String phoneNumber) {
     return phoneNumber.replaceAll(RegExp(r'[^\d]'), ''); // Keep only digits
@@ -113,6 +114,4 @@ class _EmergencyScreenState extends State<EmergencyScreen> {
       // Provide user feedback here if needed
     }
   }
-
-
 }

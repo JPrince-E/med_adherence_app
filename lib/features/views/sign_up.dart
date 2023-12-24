@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
@@ -8,7 +7,7 @@ import 'package:med_adherence_app/features/views/login_screen.dart';
 import 'package:med_adherence_app/utils/app_constants/app_colors.dart';
 
 class SignUpScreen extends StatefulWidget {
-  SignUpScreen({super.key});
+  const SignUpScreen({super.key});
 
   @override
   State<SignUpScreen> createState() => _SignUpScreenState();
