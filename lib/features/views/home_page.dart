@@ -7,6 +7,7 @@ import 'package:med_adherence_app/features/models/medication_model.dart';
 import 'package:med_adherence_app/features/views/edit_schedule.dart';
 import 'package:med_adherence_app/global.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:slide_digital_clock/slide_digital_clock.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
@@ -228,20 +229,38 @@ class _HomePageState extends State<HomePage> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
-                Obx(() => Text(
-                      "$formattedDate\n${formattedTime.value}",
-                      style: const TextStyle(
-                          fontSize: 25, fontWeight: FontWeight.bold),
-                    )),
+                // Obx(() => Text(
+                //       "$formattedDate\n${formattedTime.value}",
+                //       style: const TextStyle(
+                //         color: Colors.black,
+                //         fontSize: 25,
+                //         fontWeight: FontWeight.bold,
+                //       ),
+                //     )),
+
+                DigitalClock(
+                  hourDigitDecoration: BoxDecoration(
+                      color: Colors.yellow,
+                      border: Border.all(color: Colors.blue, width: 2)),
+                  minuteDigitDecoration: BoxDecoration(
+                      color: Colors.yellow,
+                      border: Border.all(color: Colors.red, width: 2)),
+                  secondDigitDecoration: BoxDecoration(
+                      color: Colors.blueGrey,
+                      border: Border.all(color: Colors.blue),
+                      shape: BoxShape.circle),
+                  secondDigitTextStyle: Theme.of(context)
+                      .textTheme
+                      .caption!
+                      .copyWith(color: Colors.white),
+                ),
                 CircleAvatar(
                   backgroundImage: NetworkImage(imageProfile),
                   radius: 45,
                 ),
               ],
             ),
-            const SizedBox(
-              height: 24,
-            ),
+            const SizedBox(height: 24),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
