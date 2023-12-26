@@ -30,7 +30,7 @@ class AppRouter {
       ),
       GoRoute(
         path: '/signUp',
-        builder: (context, state) => SignUpScreen(),
+        builder: (context, state) => const SignUpScreen(),
       ),
       GoRoute(
         path: '/editSchedule',

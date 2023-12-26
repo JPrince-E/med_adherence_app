@@ -3,6 +3,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:intl/intl.dart';
 import 'package:med_adherence_app/features/models/medication_model.dart';
 import 'package:med_adherence_app/features/views/edit_schedule.dart';
 import 'package:med_adherence_app/global.dart';
@@ -25,7 +26,6 @@ List<Medication> medicationsToTake = [];
 List<Medication> medicationsTaken = [];
 
 class _HomePageState extends State<HomePage> {
-  // late Timer _timer;
   RxString formattedTime = RxString('');
   RxString formattedDate = RxString('');
 
@@ -94,26 +94,7 @@ class _HomePageState extends State<HomePage> {
 
     retrieveUserInfo();
     retrieveMedInfo();
-
-    // _timer = Timer.periodic(const Duration(minutes: 1), (Timer timer) {
-    //   _updateTime();
-    // });
-
-    // _updateTime();
   }
-
-  // void _updateTime() {
-  //   DateTime now = DateTime.now();
-  //   formattedTime.value = DateFormat('h:mm a').format(now);
-
-  //   String newFormattedDate = DateFormat('E MMM d').format(now);
-  //   if (formattedDate.value != newFormattedDate) {
-  //     formattedDate.value = newFormattedDate;
-
-  //     // Check if the current time has passed the scheduled time for each medication
-  //     moveMedicationsToTaken(now);
-  //   }
-  // }
 
   void moveMedicationsToTaken(DateTime now) {
     FirebaseFirestore.instance
@@ -229,30 +210,33 @@ class _HomePageState extends State<HomePage> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
-                // Obx(() => Text(
-                //       "$formattedDate\n${formattedTime.value}",
-                //       style: const TextStyle(
-                //         color: Colors.black,
-                //         fontSize: 25,
-                //         fontWeight: FontWeight.bold,
-                //       ),
-                //     )),
-
-                DigitalClock(
-                  hourDigitDecoration: BoxDecoration(
-                      color: Colors.yellow,
-                      border: Border.all(color: Colors.blue, width: 2)),
-                  minuteDigitDecoration: BoxDecoration(
-                      color: Colors.yellow,
-                      border: Border.all(color: Colors.red, width: 2)),
-                  secondDigitDecoration: BoxDecoration(
-                      color: Colors.blueGrey,
-                      border: Border.all(color: Colors.blue),
-                      shape: BoxShape.circle),
-                  secondDigitTextStyle: Theme.of(context)
-                      .textTheme
-                      .caption!
-                      .copyWith(color: Colors.white),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      DateFormat.yMMMMEEEEd().format(DateTime.now()).toString(),
+                      style: const TextStyle(
+                        fontSize: 15,
+                        color: Colors.black,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    DigitalClock(
+                      is24HourTimeFormat: false,
+                      hourMinuteDigitTextStyle: const TextStyle(
+                        fontSize: 35,
+                        color: Colors.blue,
+                        fontWeight: FontWeight.w700,
+                      ),
+                      showSecondsDigit: false,
+                      amPmDigitTextStyle: const TextStyle(
+                        fontSize: 15,
+                        color: Colors.black,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
                 ),
                 CircleAvatar(
                   backgroundImage: NetworkImage(imageProfile),
@@ -261,45 +245,13 @@ class _HomePageState extends State<HomePage> {
               ],
             ),
             const SizedBox(height: 24),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                TextButton(
-                  onPressed: () {
-                    setState(() {
-                      isToTake = true;
-                    });
-                  },
-                  child: const Text(
-                    "Drugs To Take",
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 14,
-                    ),
-                  ),
-                ),
-                const Text(
-                  "   |   ",
-                ),
-                TextButton(
-                  onPressed: () {
-                    setState(() {
-                      isToTake = false;
-                    });
-                  },
-                  child: const Text(
-                    "Drugs Taken",
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 14,
-                    ),
-                  ),
-                ),
-              ],
+            Expanded(
+              child: _viewToTake(screenHeight * 0.50),
+              // isToTake
+              //     ?
+              // _viewToTake(screenHeight * 0.50)
+              // : _viewTaken(screenHeight * 0.50),
             ),
-            isToTake
-                ? _viewToTake(screenHeight * 0.56)
-                : _viewTaken(screenHeight * 0.56)
           ],
         ),
       ),
@@ -310,7 +262,6 @@ class _HomePageState extends State<HomePage> {
 Widget _viewToTake(double height) {
   return SingleChildScrollView(
     child: SizedBox(
-      height: height,
       child: StreamBuilder(
         stream: FirebaseFirestore.instance.collection('schedule').snapshots(),
         builder: (context, AsyncSnapshot snapshot) {
@@ -351,49 +302,48 @@ Widget _viewToTake(double height) {
   );
 }
 
-Widget _viewTaken(double height) {
-  return SingleChildScrollView(
-    child: SizedBox(
-      height: height,
-      child: StreamBuilder(
-        stream: FirebaseFirestore.instance.collection('schedule').snapshots(),
-        builder: (context, AsyncSnapshot snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          } else if (!snapshot.hasData || snapshot.data.docs.isEmpty) {
-            return const Center(
-              child: Text("No Schedule Available"),
-            );
-          } else {
-            List<Medication> medicationsList = [];
-            for (var med in snapshot.data.docs) {
-              medicationsList.add(Medication.fromDataSnapshot(med));
-            }
+// Widget _viewTaken(double height) {
+//   return SingleChildScrollView(
+//     child: SizedBox(
+//       child: StreamBuilder(
+//         stream: FirebaseFirestore.instance.collection('schedule').snapshots(),
+//         builder: (context, AsyncSnapshot snapshot) {
+//           if (snapshot.connectionState == ConnectionState.waiting) {
+//             return const Center(child: CircularProgressIndicator());
+//           } else if (!snapshot.hasData || snapshot.data.docs.isEmpty) {
+//             return const Center(
+//               child: Text("No Schedule Available"),
+//             );
+//           } else {
+//             List<Medication> medicationsList = [];
+//             for (var med in snapshot.data.docs) {
+//               medicationsList.add(Medication.fromDataSnapshot(med));
+//             }
 
-            DateTime now = DateTime.now();
-            List<Medication> drugsTaken = medicationsList
-                .where((med) =>
-                    med.times.isNotEmpty &&
-                    med.times.any((time) => DateTime(now.year, now.month,
-                            now.day, time.hour, time.minute)
-                        .isBefore(now)))
-                .toList();
+//             DateTime now = DateTime.now();
+//             List<Medication> drugsTaken = medicationsList
+//                 .where((med) =>
+//                     med.times.isNotEmpty &&
+//                     med.times.any((time) => DateTime(now.year, now.month,
+//                             now.day, time.hour, time.minute)
+//                         .isBefore(now)))
+//                 .toList();
 
-            return SingleChildScrollView(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  _buildMedicationList("Drugs Taken", drugsTaken),
-                  const SizedBox(height: 16.0),
-                ],
-              ),
-            );
-          }
-        },
-      ),
-    ),
-  );
-}
+//             return SingleChildScrollView(
+//               child: Column(
+//                 crossAxisAlignment: CrossAxisAlignment.center,
+//                 children: [
+//                   _buildMedicationList("Drugs Taken", drugsTaken),
+//                   const SizedBox(height: 16.0),
+//                 ],
+//               ),
+//             );
+//           }
+//         },
+//       ),
+//     ),
+//   );
+// }
 
 Widget _buildMedicationList(String title, List<Medication> medications) {
   return SingleChildScrollView(
