@@ -33,8 +33,6 @@ List<Medication> medicationsTaken = [];
 class _HomePageState extends State<HomePage> {
   final HomepageController _controller = HomepageController.to;
 
-  late Timer _timer;
-
   String fullName = '';
   String email = '';
   String imageProfile =
@@ -63,10 +61,6 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     super.initState();
-    // Trigger rebuild every minute
-    _timer = Timer.periodic(const Duration(minutes: 1), (Timer timer) {
-      // setState(() {});
-    });
     retrieveUserInfo();
     _controller.getAllMedicationsData();
   }
@@ -139,7 +133,8 @@ class _HomePageState extends State<HomePage> {
           ),
         ],
       ),
-      body: TimerBuilder.periodic(Duration(minutes: 1), builder: (context) {
+      body:
+          TimerBuilder.periodic(const Duration(minutes: 1), builder: (context) {
         print(' >>>>> Checking time . . .');
         return Padding(
           padding: const EdgeInsets.all(16.0),
