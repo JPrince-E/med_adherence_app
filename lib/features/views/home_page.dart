@@ -177,23 +177,22 @@ class _HomePageState extends State<HomePage> {
                     color: Colors.blue,
                   )
                 : Expanded(
-                  child: Container(
-                    color: Colors.grey[50],
-                    child: ListView.builder(
+                    child: Container(
+                      color: Colors.grey[50],
+                      child: ListView.builder(
                         padding: const EdgeInsets.symmetric(vertical: 10),
                         reverse: false,
                         physics: const ClampingScrollPhysics(),
                         shrinkWrap: true,
-                        itemCount: _controller.medicationsData.length,
+                        itemCount: _controller.scheduleList.length,
                         itemBuilder: (BuildContext context, int index) {
                           return _buildMedicationCard(
-                            _controller.medicationsData[index],
-                            _controller.medicationsData[index].times[0],
+                            _controller.scheduleList[index],
                           );
                         },
                       ),
+                    ),
                   ),
-                ),
           ],
         ),
       ),
@@ -271,8 +270,8 @@ class _HomePageState extends State<HomePage> {
 //   );
 // }
 
-Widget _buildMedicationCard(Medication medication, TimeOfDay time) {
-  String hexColor = medication.colour;
+Widget _buildMedicationCard(EachMedication medicationSchedule) {
+  String hexColor = medicationSchedule.colour;
 
   return Card(
     color: Colors.blue.shade200,
@@ -295,7 +294,7 @@ Widget _buildMedicationCard(Medication medication, TimeOfDay time) {
             ),
           ),
           title: Text(
-            medication.medicationName,
+            medicationSchedule.medicationName,
             style: const TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
@@ -309,7 +308,7 @@ Widget _buildMedicationCard(Medication medication, TimeOfDay time) {
                 mainAxisAlignment: MainAxisAlignment.start,
                 children: [
                   Text(
-                    medication.selectedAmount,
+                    medicationSchedule.selectedAmount,
                     style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.normal,
@@ -319,7 +318,7 @@ Widget _buildMedicationCard(Medication medication, TimeOfDay time) {
                     width: 30,
                   ),
                   Text(
-                    medication.selectedDose,
+                    medicationSchedule.selectedDose,
                     style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.normal,
@@ -328,7 +327,7 @@ Widget _buildMedicationCard(Medication medication, TimeOfDay time) {
                 ],
               ),
               Text(
-                'Time: ${_formatTime(time)}',
+                'Time: ${_formatTime(medicationSchedule.time)}',
                 style: const TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.normal,

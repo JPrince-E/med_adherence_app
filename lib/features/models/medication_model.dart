@@ -107,3 +107,27 @@ class Medication {
     };
   }
 }
+
+class EachMedication {
+  final String medicationName;
+  final String selectedAmount;
+  final String selectedDose;
+  final String noOfTimes;
+  final String noOfDays;
+  final TimeOfDay time;
+  String colour;
+  final String uid;
+  bool isTaken;
+
+  EachMedication({
+    required this.medicationName,
+    required this.selectedAmount,
+    required this.selectedDose,
+    required this.noOfTimes,
+    required this.noOfDays,
+    required this.time,
+    required this.colour,
+    required this.uid,
+    this.isTaken = false,
+  });
+}
