@@ -1,8 +1,5 @@
 // ignore_for_file: avoid_print
 
-// /*
-import 'dart:async';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -136,6 +133,9 @@ class _HomePageState extends State<HomePage> {
       body:
           TimerBuilder.periodic(const Duration(minutes: 1), builder: (context) {
         print(' >>>>> Checking time . . .');
+        // TODO: Function to check if time of medList[0] is not past now. 
+        // If past, silently retrieve data from the database
+        // the function should put past data at the end of the list in the controller
         return Padding(
           padding: const EdgeInsets.all(16.0),
           child: Column(
