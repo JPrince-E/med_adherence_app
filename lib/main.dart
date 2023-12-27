@@ -1,8 +1,11 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:med_adherence_app/features/controllers/auth_controller.dart';
+import 'package:med_adherence_app/features/controllers/home_controller.dart';
 import 'package:med_adherence_app/features/controllers/schedule_controller.dart';
+import 'package:med_adherence_app/features/views/home_page.dart';
 import 'package:med_adherence_app/features/views/login_screen.dart';
 import 'package:med_adherence_app/firebase_options.dart';
 
@@ -16,6 +19,7 @@ void main() async {
   ).then((value) {
     Get.put(AuthController());
     Get.put(ScheduleController());
+    Get.put(HomepageController());
   });
 
   runApp(const MyApp());
@@ -35,8 +39,9 @@ class MyApp extends StatelessWidget {
         ),
         useMaterial3: true,
       ),
-
-      home: const LoginScreen(),
+      home: FirebaseAuth.instance.currentUser == null
+          ? const LoginScreen()
+          : const HomePage(),
     );
   }
 }

@@ -1,9 +1,11 @@
 // ignore_for_file: avoid_print
 
+// /*
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
+import 'package:med_adherence_app/features/controllers/home_controller.dart';
 import 'package:med_adherence_app/features/models/medication_model.dart';
 import 'package:med_adherence_app/features/views/edit_schedule.dart';
 import 'package:med_adherence_app/global.dart';
@@ -21,17 +23,11 @@ String _formatTime(TimeOfDay time) {
   return '${time.hour}:${time.minute.toString().padLeft(2, '0')}';
 }
 
-bool isToTake = true;
 List<Medication> medicationsToTake = [];
 List<Medication> medicationsTaken = [];
 
 class _HomePageState extends State<HomePage> {
-  RxString formattedTime = RxString('');
-  RxString formattedDate = RxString('');
-
-  late String medicationTime = '';
-
-  bool isToTake = true;
+  final HomepageController _controller = HomepageController.to;
 
   String fullName = '';
   String email = '';
@@ -58,79 +54,11 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
-  String medicationName = '';
-  String selectedAmount = '';
-  String selectedDose = '';
-  String noOfTimes = '';
-  String noOfDays = '';
-  String times = '';
-  String colour = '';
-
-  retrieveMedInfo() async {
-    FirebaseFirestore.instance
-        .collection("schedule")
-        .doc(currentUserID)
-        .get()
-        .then((snapshot) {
-      if (snapshot.exists) {
-        setState(() {
-          medicationName = snapshot.data()!["medicationName"];
-          selectedAmount = snapshot.data()!["selectedAmount"];
-          selectedDose = snapshot.data()!["selectedDose"];
-          noOfTimes = snapshot.data()!["noOfTimes"];
-          noOfDays = snapshot.data()!["noOfDays"];
-          times = snapshot.data()!["times"];
-          colour = snapshot.data()!["colour"];
-
-          medicationTime = snapshot.data()!["medicationTime"];
-        });
-      }
-    });
-  }
-
   @override
   void initState() {
     super.initState();
-
     retrieveUserInfo();
-    retrieveMedInfo();
-  }
-
-  void moveMedicationsToTaken(DateTime now) {
-    FirebaseFirestore.instance
-        .collection("schedule")
-        .doc(currentUserID)
-        .get()
-        .then((snapshot) {
-      if (snapshot.exists) {
-        List<Medication> medicationsList = [];
-        for (var med in snapshot.data()!["medications"]) {
-          medicationsList.add(Medication.fromDataSnapshot(med));
-        }
-
-        // Filter medications whose times have passed
-        List<Medication> medicationsToMove = medicationsList
-            .where((med) =>
-                med.times.isNotEmpty &&
-                med.times.any((time) => DateTime(
-                        now.year, now.month, now.day, time.hour, time.minute)
-                    .isBefore(now)))
-            .toList();
-
-        // Move medications to "Drugs Taken" for the specific occurrence
-        for (var medication in medicationsToMove) {
-          for (var time in medication.times) {
-            if (DateTime(now.year, now.month, now.day, time.hour, time.minute)
-                .isBefore(now)) {
-              // Move only the specific occurrence to "Drugs Taken"
-              _markAsTaken(medication.copyWith(times: [
-                time
-              ])); // Update the copy of the medication with only the specific time
-            }
-          }
-        }
-      }
-    });
+    _controller.getAllMedicationsData();
   }
 
   void makeEmergencyCall() async {
@@ -173,8 +101,6 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-    double screenHeight = MediaQuery.of(context).size.height;
-
     return Scaffold(
       appBar: AppBar(
         title: Row(
@@ -245,13 +171,29 @@ class _HomePageState extends State<HomePage> {
               ],
             ),
             const SizedBox(height: 24),
-            Expanded(
-              child: _viewToTake(screenHeight * 0.50),
-              // isToTake
-              //     ?
-              // _viewToTake(screenHeight * 0.50)
-              // : _viewTaken(screenHeight * 0.50),
-            ),
+            _controller.loading == true
+                ? const CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: Colors.blue,
+                  )
+                : Expanded(
+                  child: Container(
+                    color: Colors.grey[50],
+                    child: ListView.builder(
+                        padding: const EdgeInsets.symmetric(vertical: 10),
+                        reverse: false,
+                        physics: const ClampingScrollPhysics(),
+                        shrinkWrap: true,
+                        itemCount: _controller.medicationsData.length,
+                        itemBuilder: (BuildContext context, int index) {
+                          return _buildMedicationCard(
+                            _controller.medicationsData[index],
+                            _controller.medicationsData[index].times[0],
+                          );
+                        },
+                      ),
+                  ),
+                ),
           ],
         ),
       ),
@@ -259,50 +201,7 @@ class _HomePageState extends State<HomePage> {
   }
 }
 
-Widget _viewToTake(double height) {
-  return SingleChildScrollView(
-    child: SizedBox(
-      child: StreamBuilder(
-        stream: FirebaseFirestore.instance.collection('schedule').snapshots(),
-        builder: (context, AsyncSnapshot snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          } else if (!snapshot.hasData || snapshot.data.docs.isEmpty) {
-            return const Center(
-              child: Text("No Schedule Available"),
-            );
-          } else {
-            List<Medication> medicationsList = [];
-            for (var med in snapshot.data.docs) {
-              medicationsList.add(Medication.fromDataSnapshot(med));
-            }
-
-            DateTime now = DateTime.now();
-            List<Medication> drugsToTake = medicationsList
-                .where((med) =>
-                    med.times.isNotEmpty &&
-                    med.times.any((time) => DateTime(now.year, now.month,
-                            now.day, time.hour, time.minute)
-                        .isAfter(now)))
-                .toList();
-
-            return SingleChildScrollView(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  _buildMedicationList("Drugs To Take", drugsToTake),
-                  const SizedBox(height: 16.0),
-                ],
-              ),
-            );
-          }
-        },
-      ),
-    ),
-  );
-}
-
-// Widget _viewTaken(double height) {
+// Widget _viewToTake(double height) {
 //   return SingleChildScrollView(
 //     child: SizedBox(
 //       child: StreamBuilder(
@@ -321,19 +220,19 @@ Widget _viewToTake(double height) {
 //             }
 
 //             DateTime now = DateTime.now();
-//             List<Medication> drugsTaken = medicationsList
+//             List<Medication> drugsToTake = medicationsList
 //                 .where((med) =>
 //                     med.times.isNotEmpty &&
 //                     med.times.any((time) => DateTime(now.year, now.month,
 //                             now.day, time.hour, time.minute)
-//                         .isBefore(now)))
+//                         .isAfter(now)))
 //                 .toList();
 
 //             return SingleChildScrollView(
 //               child: Column(
 //                 crossAxisAlignment: CrossAxisAlignment.center,
 //                 children: [
-//                   _buildMedicationList("Drugs Taken", drugsTaken),
+//                   _buildMedicationList(drugsToTake),
 //                   const SizedBox(height: 16.0),
 //                 ],
 //               ),
@@ -345,35 +244,34 @@ Widget _viewToTake(double height) {
 //   );
 // }
 
-Widget _buildMedicationList(String title, List<Medication> medications) {
-  return SingleChildScrollView(
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const SizedBox(height: 8.0),
-        if (medications.isNotEmpty)
-          ...medications.map(
-            (medication) {
-              // Create a card for each time associated with the medication
-              return Column(
-                children: medication.times
-                    .map((time) =>
-                        _buildMedicationCard(medication, time, isToTake))
-                    .toList(),
-              );
-            },
-          ),
-        if (medications.isEmpty)
-          const Center(
-            child: Text("No Medication in this category"),
-          ),
-      ],
-    ),
-  );
-}
+// Widget _buildMedicationList(List<Medication> medications) {
+//   return SingleChildScrollView(
+//     child: Column(
+//       crossAxisAlignment: CrossAxisAlignment.start,
+//       children: [
+//         const SizedBox(height: 8.0),
+//         if (medications.isNotEmpty)
+//           ...medications.map(
+//             (medication) {
+//               // Create a card for each time associated with the medication
+//               return Column(
+//                 children: medication.times
+//                     .map((time) =>
+//                         _buildMedicationCard(medication, time, isToTake))
+//                     .toList(),
+//               );
+//             },
+//           ),
+//         if (medications.isEmpty)
+//           const Center(
+//             child: Text("No Medication in this category"),
+//           ),
+//       ],
+//     ),
+//   );
+// }
 
-Widget _buildMedicationCard(
-    Medication medication, TimeOfDay time, bool isToTake) {
+Widget _buildMedicationCard(Medication medication, TimeOfDay time) {
   String hexColor = medication.colour;
 
   return Card(
@@ -456,7 +354,7 @@ Widget _buildMedicationCard(
               onPressed: () {
                 // Handle "Mark as Not Taken" button click
                 // Move medication back to "Drugs To Take"
-                _markAsNotTaken(medication);
+                // _markAsNotTaken(medication);
               },
               icon: const Icon(Icons.cancel, color: Colors.red),
             ),
@@ -464,7 +362,7 @@ Widget _buildMedicationCard(
               onPressed: () {
                 // Handle "Mark as Taken" button click
                 // Move medication to "Drugs Taken"
-                _markAsTaken(medication);
+                // _markAsTaken(medication);
               },
               icon: const Icon(Icons.check_circle, color: Colors.green),
             ),
@@ -473,14 +371,4 @@ Widget _buildMedicationCard(
       ],
     ),
   );
-}
-
-void _markAsTaken(Medication medication) {
-  // Add logic to mark medication as taken and move it to "Drugs Taken"
-  // You can update the Firestore data or use other state management solutions
-}
-
-void _markAsNotTaken(Medication medication) {
-  // Add logic to mark medication as not taken and move it back to "Drugs To Take"
-  // You can update the Firestore data or use other state management solutions
 }
