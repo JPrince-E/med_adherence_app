@@ -3,6 +3,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:get/get.dart';
 import 'package:med_adherence_app/features/models/medication_model.dart';
+import 'package:alarm/alarm.dart';
 
 class HomepageController extends GetxController {
   static HomepageController get to => Get.find();

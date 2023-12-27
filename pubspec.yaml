@@ -58,6 +58,8 @@ dependencies:
   shared_preferences: ^2.0.15
   firebase_database: ^10.0.9
   slide_digital_clock: ^1.0.3
+  alarm: ^3.0.2
+  timer_builder: ^2.0.0
 
 dev_dependencies:
   flutter_test:

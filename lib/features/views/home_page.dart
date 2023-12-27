@@ -1,6 +1,8 @@
 // ignore_for_file: avoid_print
 
 // /*
+import 'dart:async';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -11,6 +13,8 @@ import 'package:med_adherence_app/features/views/edit_schedule.dart';
 import 'package:med_adherence_app/global.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:slide_digital_clock/slide_digital_clock.dart';
+import 'package:med_adherence_app/utils/extension_and_methods/time_extensions.dart';
+import 'package:timer_builder/timer_builder.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
@@ -28,6 +32,8 @@ List<Medication> medicationsTaken = [];
 
 class _HomePageState extends State<HomePage> {
   final HomepageController _controller = HomepageController.to;
+
+  late Timer _timer;
 
   String fullName = '';
   String email = '';
@@ -57,6 +63,10 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     super.initState();
+    // Trigger rebuild every minute
+    _timer = Timer.periodic(const Duration(minutes: 1), (Timer timer) {
+      // setState(() {});
+    });
     retrieveUserInfo();
     _controller.getAllMedicationsData();
   }
@@ -129,152 +139,88 @@ class _HomePageState extends State<HomePage> {
           ),
         ],
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      DateFormat.yMMMMEEEEd().format(DateTime.now()).toString(),
-                      style: const TextStyle(
-                        fontSize: 15,
-                        color: Colors.black,
-                        fontWeight: FontWeight.w500,
+      body: TimerBuilder.periodic(Duration(minutes: 1), builder: (context) {
+        print(' >>>>> Checking time . . .');
+        return Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: [
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        DateFormat.yMMMMEEEEd()
+                            .format(DateTime.now())
+                            .toString(),
+                        style: const TextStyle(
+                          fontSize: 15,
+                          color: Colors.black,
+                          fontWeight: FontWeight.w500,
+                        ),
                       ),
-                    ),
-                    DigitalClock(
-                      is24HourTimeFormat: false,
-                      hourMinuteDigitTextStyle: const TextStyle(
-                        fontSize: 35,
-                        color: Colors.blue,
-                        fontWeight: FontWeight.w700,
+                      DigitalClock(
+                        is24HourTimeFormat: false,
+                        hourMinuteDigitTextStyle: const TextStyle(
+                          fontSize: 35,
+                          color: Colors.blue,
+                          fontWeight: FontWeight.w700,
+                        ),
+                        showSecondsDigit: false,
+                        amPmDigitTextStyle: const TextStyle(
+                          fontSize: 15,
+                          color: Colors.black,
+                          fontWeight: FontWeight.w500,
+                        ),
                       ),
-                      showSecondsDigit: false,
-                      amPmDigitTextStyle: const TextStyle(
-                        fontSize: 15,
-                        color: Colors.black,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ],
-                ),
-                CircleAvatar(
-                  backgroundImage: NetworkImage(imageProfile),
-                  radius: 45,
-                ),
-              ],
-            ),
-            const SizedBox(height: 24),
-            _controller.loading == true
-                ? const CircularProgressIndicator(
-                    strokeWidth: 2,
-                    color: Colors.blue,
-                  )
-                : Expanded(
-                    child: Container(
-                      color: Colors.grey[50],
-                      child: ListView.builder(
-                        padding: const EdgeInsets.symmetric(vertical: 10),
-                        reverse: false,
-                        physics: const ClampingScrollPhysics(),
-                        shrinkWrap: true,
-                        itemCount: _controller.scheduleList.length,
-                        itemBuilder: (BuildContext context, int index) {
-                          return _buildMedicationCard(
-                            _controller.scheduleList[index],
-                          );
-                        },
-                      ),
-                    ),
+                    ],
                   ),
-          ],
-        ),
-      ),
+                  CircleAvatar(
+                    backgroundImage: NetworkImage(imageProfile),
+                    radius: 45,
+                  ),
+                ],
+              ),
+              const SizedBox(height: 24),
+              _controller.loading == true
+                  ? const CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: Colors.blue,
+                    )
+                  : Expanded(
+                      child: Container(
+                        color: Colors.grey[50],
+                        child: ListView.builder(
+                          padding: const EdgeInsets.symmetric(vertical: 10),
+                          reverse: false,
+                          physics: const ClampingScrollPhysics(),
+                          shrinkWrap: true,
+                          itemCount: _controller.scheduleList.length,
+                          itemBuilder: (BuildContext context, int index) {
+                            return _buildMedicationCard(
+                              _controller.scheduleList[index],
+                            );
+                          },
+                        ),
+                      ),
+                    ),
+            ],
+          ),
+        );
+      }),
     );
   }
 }
-
-// Widget _viewToTake(double height) {
-//   return SingleChildScrollView(
-//     child: SizedBox(
-//       child: StreamBuilder(
-//         stream: FirebaseFirestore.instance.collection('schedule').snapshots(),
-//         builder: (context, AsyncSnapshot snapshot) {
-//           if (snapshot.connectionState == ConnectionState.waiting) {
-//             return const Center(child: CircularProgressIndicator());
-//           } else if (!snapshot.hasData || snapshot.data.docs.isEmpty) {
-//             return const Center(
-//               child: Text("No Schedule Available"),
-//             );
-//           } else {
-//             List<Medication> medicationsList = [];
-//             for (var med in snapshot.data.docs) {
-//               medicationsList.add(Medication.fromDataSnapshot(med));
-//             }
-
-//             DateTime now = DateTime.now();
-//             List<Medication> drugsToTake = medicationsList
-//                 .where((med) =>
-//                     med.times.isNotEmpty &&
-//                     med.times.any((time) => DateTime(now.year, now.month,
-//                             now.day, time.hour, time.minute)
-//                         .isAfter(now)))
-//                 .toList();
-
-//             return SingleChildScrollView(
-//               child: Column(
-//                 crossAxisAlignment: CrossAxisAlignment.center,
-//                 children: [
-//                   _buildMedicationList(drugsToTake),
-//                   const SizedBox(height: 16.0),
-//                 ],
-//               ),
-//             );
-//           }
-//         },
-//       ),
-//     ),
-//   );
-// }
-
-// Widget _buildMedicationList(List<Medication> medications) {
-//   return SingleChildScrollView(
-//     child: Column(
-//       crossAxisAlignment: CrossAxisAlignment.start,
-//       children: [
-//         const SizedBox(height: 8.0),
-//         if (medications.isNotEmpty)
-//           ...medications.map(
-//             (medication) {
-//               // Create a card for each time associated with the medication
-//               return Column(
-//                 children: medication.times
-//                     .map((time) =>
-//                         _buildMedicationCard(medication, time, isToTake))
-//                     .toList(),
-//               );
-//             },
-//           ),
-//         if (medications.isEmpty)
-//           const Center(
-//             child: Text("No Medication in this category"),
-//           ),
-//       ],
-//     ),
-//   );
-// }
 
 Widget _buildMedicationCard(EachMedication medicationSchedule) {
   String hexColor = medicationSchedule.colour;
 
   return Card(
-    color: Colors.blue.shade200,
+    elevation: 4,
+    color: Colors.blue.shade100,
     margin: const EdgeInsets.all(10),
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -331,6 +277,15 @@ Widget _buildMedicationCard(EachMedication medicationSchedule) {
                 style: const TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.normal,
+                ),
+              ),
+              // Show time rmaining
+              Text(
+                convertTimeOfDayToDateTime(medicationSchedule.time),
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.blue.shade800,
                 ),
               ),
             ],
