@@ -60,6 +60,7 @@ dependencies:
   slide_digital_clock: ^1.0.3
   alarm: ^3.0.2
   timer_builder: ^2.0.0
+  timeago: ^3.6.0
 
 dev_dependencies:
   flutter_test:

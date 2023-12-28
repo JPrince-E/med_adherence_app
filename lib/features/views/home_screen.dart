@@ -6,7 +6,6 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:med_adherence_app/features/views/emergency_settings.dart';
 import 'package:med_adherence_app/features/views/home_page.dart';
-import 'package:med_adherence_app/features/views/notification_screen.dart';
 import 'package:med_adherence_app/features/views/profile_screen.dart';
 import 'package:med_adherence_app/features/views/schedule_screen.dart';
 
@@ -30,7 +29,7 @@ class _HomeScreenState extends State<HomeScreen> {
     ScheduleScreen(
       userID: FirebaseAuth.instance.currentUser!.uid,
     ),
-    const NotificationScreen(),
+    // const NotificationScreen(),
     ProfileScreen(
       userID: FirebaseAuth.instance.currentUser!.uid,
     ),
@@ -95,7 +94,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 Get.to(EmergencyScreen());
                 setState(() {
                   screenIndex = 0;
-                  Navigator.pop(context); // Close the drawer
+                  Navigator.pop(context);
                 });
               },
             ),
@@ -117,9 +116,11 @@ class _HomeScreenState extends State<HomeScreen> {
             screenIndex = indexNumber;
           });
         },
+        showUnselectedLabels: false,
+        showSelectedLabels: false,
         type: BottomNavigationBarType.fixed,
-        backgroundColor: Colors.blue.shade200,
-        selectedItemColor: Colors.blueAccent,
+        backgroundColor: Colors.blue.shade600,
+        selectedItemColor: Colors.amber,
         unselectedItemColor: Colors.white,
         currentIndex: screenIndex,
         items: const [
@@ -128,28 +129,28 @@ class _HomeScreenState extends State<HomeScreen> {
               Icons.home,
               size: 30,
             ),
-            label: "",
+            label: "Home",
           ),
           BottomNavigationBarItem(
             icon: Icon(
               Icons.add,
               size: 30,
             ),
-            label: "",
+            label: "Create",
           ),
-          BottomNavigationBarItem(
-            icon: Icon(
-              Icons.notifications,
-              size: 30,
-            ),
-            label: "",
-          ),
+          // BottomNavigationBarItem(
+          //   icon: Icon(
+          //     Icons.notifications,
+          //     size: 30,
+          //   ),
+          //   label: "",
+          // ),
           BottomNavigationBarItem(
             icon: Icon(
               Icons.person,
               size: 30,
             ),
-            label: "",
+            label: "Profile",
           ),
         ],
       ),

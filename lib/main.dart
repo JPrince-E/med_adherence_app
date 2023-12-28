@@ -1,3 +1,4 @@
+import 'package:alarm/alarm.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
@@ -21,6 +22,7 @@ void main() async {
     Get.put(ScheduleController());
     Get.put(HomepageController());
   });
+  await Alarm.init();
 
   runApp(const MyApp());
 }

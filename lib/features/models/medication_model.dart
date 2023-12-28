@@ -109,6 +109,7 @@ class Medication {
 }
 
 class EachMedication {
+  final int id;
   final String medicationName;
   final String selectedAmount;
   final String selectedDose;
@@ -120,6 +121,7 @@ class EachMedication {
   bool isTaken;
 
   EachMedication({
+    required this.id,
     required this.medicationName,
     required this.selectedAmount,
     required this.selectedDose,
@@ -130,4 +132,19 @@ class EachMedication {
     required this.uid,
     this.isTaken = false,
   });
+
+  EachMedication copyWith({List<TimeOfDay>? times}) {
+    return EachMedication(
+      id: id,
+      uid: uid,
+      medicationName: medicationName,
+      selectedAmount: selectedAmount,
+      selectedDose: selectedDose,
+      noOfTimes: noOfTimes,
+      noOfDays: noOfDays,
+      time: time,
+      colour: colour,
+      isTaken: isTaken,
+    );
+  }
 }

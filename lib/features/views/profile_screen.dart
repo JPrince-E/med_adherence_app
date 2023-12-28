@@ -60,7 +60,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         centerTitle: true,
       ),
       body: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(10.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
@@ -89,30 +89,46 @@ class _ProfileScreenState extends State<ProfileScreen> {
               child: ListView(
                 shrinkWrap: true,
                 children: [
-                  ListTile(
-                    leading: const Icon(Icons.person, size: 30),
-                    horizontalTitleGap: 50,
-                    title: const Text("Edit Profile"),
-                    onTap: () {
-                      Get.to(const EditProfile());
-                    },
+                  // ListTile(
+                  //   leading: const Icon(Icons.person, size: 30),
+                  //   horizontalTitleGap: 50,
+                  //   title: const Text("Edit Profile"),
+                  //   onTap: () {
+                  //     Get.to(const EditProfile());
+                  //   },
+                  // ),
+                  wrapperContainer(
+                    child: ListTile(
+                      leading: const Icon(
+                        Icons.contact_emergency_outlined,
+                        color: Colors.white,
+                        size: 30,
+                      ),
+                      title: const Text(
+                        "Set Up Emergency",
+                        style: TextStyle(color: Colors.white, fontSize: 16),
+                      ),
+                      onTap: () {
+                        Get.to(EmergencyScreen());
+                      },
+                    ),
                   ),
-                  ListTile(
-                    leading:
-                        const Icon(Icons.contact_emergency_outlined, size: 30),
-                    horizontalTitleGap: 50,
-                    title: const Text("Set Up Emergency"),
-                    onTap: () {
-                      Get.to(EmergencyScreen());
-                    },
-                  ),
-                  ListTile(
-                    leading: const Icon(Icons.logout, size: 30),
-                    horizontalTitleGap: 50,
-                    title: const Text("Logout"),
-                    onTap: () {
-                      Get.off(const LoginScreen());
-                    },
+                  wrapperContainer(
+                    color: Colors.red,
+                    child: ListTile(
+                      leading: const Icon(
+                        Icons.logout,
+                        size: 30,
+                        color: Colors.white,
+                      ),
+                      title: const Text(
+                        "Logout",
+                        style: TextStyle(color: Colors.white, fontSize: 16),
+                      ),
+                      onTap: () {
+                        Get.off(const LoginScreen());
+                      },
+                    ),
                   ),
                 ],
               ),
@@ -120,6 +136,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ],
         ),
       ),
+    );
+  }
+
+  Widget wrapperContainer({required Widget child, Color? color}) {
+    return Container(
+      decoration: BoxDecoration(
+        color: color ?? Colors.blue, // Blue background color
+        border: Border.all(color: Colors.orange, width: 2), // Orange border
+        borderRadius: BorderRadius.circular(12), // Rounded corners
+      ),
+      padding: const EdgeInsets.all(8),
+      margin: const EdgeInsets.all(5),
+      child: child,
     );
   }
 }
