@@ -202,12 +202,19 @@ class HomepageController extends GetxController {
   }
 
   removeFromFutureList() {
+    print(
+        " %%%%%%%% scheduleList First and last times : ${scheduleList.first.time} | ${scheduleList.last.time} ");
+    // EachMedication firstItem =
     scheduleList.removeAt(0);
+    // scheduleList.add(firstItem);
+    print(
+        " %%%%%%%% scheduleList First and last times : ${scheduleList.first.time} | ${scheduleList.last.time} ");
     update();
   }
 
   removeFromDueList(int index) {
-    dueScheduleList.removeAt(index);
+    dueScheduleList[index].copyWith(isTaken: true);
+    // dueScheduleList.removeAt(index);
     update();
   }
 }

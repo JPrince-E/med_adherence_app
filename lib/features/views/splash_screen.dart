@@ -103,7 +103,7 @@ class _SplashScreenState extends State<SplashScreen>
                         children: [
                           Image(
                             image:
-                                const AssetImage('images/logo.png'),
+                                const AssetImage('assets/logo.png'),
                             height: sizeAnimation!.value * 4,
                             width: sizeAnimation!.value * 4,
                           ),

@@ -3,7 +3,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:med_adherence_app/features/views/edit_profile.dart';
 import 'package:med_adherence_app/features/views/emergency_settings.dart';
 import 'package:med_adherence_app/features/views/login_screen.dart';
 
