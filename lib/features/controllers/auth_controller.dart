@@ -131,35 +131,6 @@ class AuthController extends GetxController {
     }
   }
 
-  // void showImageSourceDialog() {
-  //   Get.defaultDialog(
-  //     barrierDismissible: true,
-  //     title: "Add Image",
-  //     content: Column(
-  //       mainAxisSize: MainAxisSize.min,
-  //       children: [
-  //         ElevatedButton(
-  //           onPressed: () async {
-  //             await getFromCamera();
-  //           },
-  //           style: ElevatedButton.styleFrom(
-  //             backgroundColor: Colors.blue.shade200,
-  //           ),
-  //           child: const Text("Camera"),
-  //         ),
-  //         ElevatedButton(
-  //           onPressed: () async {
-  //             await getFromGallery();
-  //           },
-  //           style: ElevatedButton.styleFrom(
-  //             backgroundColor: Colors.blue.shade200,
-  //           ),
-  //           child: const Text("Gallery"),
-  //         ),
-  //       ],
-  //     ),
-  //   );
-  // }
 
   Future<String> uploadImageToStorage(File imageFile) async {
     Reference referenceStorage = FirebaseStorage.instance
@@ -175,45 +146,6 @@ class AuthController extends GetxController {
     return downloadUrlOfImage;
   }
 
-  // createUser(
-  //   File imageProfile,
-  //   String fullName,
-  //   String email,
-  //   String password,
-  // ) async {
-  //   try{
-  //     //1. authenticate user and create user with Email and Password
-  //     UserCredential credential =
-  //     await FirebaseAuth.instance.createUserWithEmailAndPassword(
-  //       email: email,
-  //       password: password,
-  //     );
-  //
-  //     //2. upload image to storage
-  //     String urlOfDownloadedImage = await uploadImageToStorage(imageProfile);
-  //
-  //     //3. save user info to firestore database
-  //     personModel.Person personInstance = personModel.Person(
-  //         //personal Info
-  //         uid: FirebaseAuth.instance.currentUser!.uid,
-  //         imageProfile: urlOfDownloadedImage,
-  //         fullName: fullName,
-  //         email: email,
-  //         password: password,
-  //     );
-  //
-  //     await FirebaseFirestore.instance
-  //         .collection("users")
-  //         .doc(FirebaseAuth.instance.currentUser!.uid)
-  //         .set(personInstance.toJson());
-  //
-  //     Get.snackbar("Account Created", "Congratulation, your account has been created");
-  //     Get.off(() => HomeScreen(userID: FirebaseAuth.instance.currentUser!.uid,));
-  //   } catch (errorMsg) {
-  //     Get.snackbar(
-  //         "Account Creation Unsuccessful", "Error occurred: $errorMsg");
-  //   }
-  // }
 
   void gotoSignInUserPage(BuildContext context) {
     print('Going to sign in user page');
@@ -397,46 +329,6 @@ class AuthController extends GetxController {
     }
   }
 
-  // createUser(
-  //     Person
-  //     File imageProfile,
-  //     String fullName,
-  //     String email,
-  //     String password,
-  //     ) async {
-  //   try{
-  //     //1. authenticate user and create user with Email and Password
-  //     UserCredential credential =
-  //     await FirebaseAuth.instance.createUserWithEmailAndPassword(
-  //       email: email,
-  //       password: password,
-  //     );
-  //
-  //     //2. upload image to storage
-  //     String urlOfDownloadedImage = await uploadImageToStorage(imageProfile);
-  //
-  //     //3. save user info to firestore database
-  //     personModel.UserAccountModel personInstance = personModel.UserAccountModel(
-  //       //personal Info
-  //       uid: FirebaseAuth.instance.currentUser!.uid,
-  //       imageProfile: urlOfDownloadedImage,
-  //       fullName: fullName,
-  //       email: email,
-  //       password: password,
-  //     );
-  //
-  //     await FirebaseFirestore.instance
-  //         .collection("users")
-  //         .doc(FirebaseAuth.instance.currentUser!.uid)
-  //         .set(personInstance.toJson());
-  //
-  //     Get.snackbar("Account Created", "Congratulation, your account has been created");
-  //     Get.off(() => HomeScreen(userID: FirebaseAuth.instance.currentUser!.uid,));
-  //   } catch (errorMsg) {
-  //     Get.snackbar(
-  //         "Account Creation Unsuccessful", "Error occurred: $errorMsg");
-  //   }
-  // }
 
   loginUser(String emailUser, String passwordUser) async {
     try {

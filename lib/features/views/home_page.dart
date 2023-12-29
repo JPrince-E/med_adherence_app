@@ -97,16 +97,13 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Row(
-          children: [
-            IconButton(
-              icon: const Icon(Icons.menu),
-              onPressed: () {
-                Scaffold.of(context).openDrawer();
-              },
-            ),
-            Text("Hi $fullName"),
-          ],
+        title: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Row(
+            children: [
+              Text("Hi $fullName"),
+            ],
+          ),
         ),
         automaticallyImplyLeading: false,
         actions: [

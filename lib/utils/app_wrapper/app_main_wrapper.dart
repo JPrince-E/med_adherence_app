@@ -20,7 +20,8 @@ class AppMainWrapper extends StatelessWidget {
     );
     return MediaQuery(
       data: const MediaQueryData().copyWith(
-        devicePixelRatio: 1, textScaler: const TextScaler.linear(1),
+        textScaleFactor: 1,
+        devicePixelRatio: 1,
       ),
       child: child,
     );

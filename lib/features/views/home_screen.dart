@@ -71,45 +71,6 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      drawer: Drawer(
-        child: Column(
-          children: <Widget>[
-            UserAccountsDrawerHeader(
-              accountName: Text(
-                fullName,
-              ),
-              accountEmail: Text(
-                email,
-              ),
-              currentAccountPicture: CircleAvatar(
-                backgroundImage: NetworkImage(imageProfile),
-              ),
-            ),
-            ListTile(
-              leading: const Icon(
-                Icons.contact_emergency,
-              ),
-              title: const Text('Emergency'),
-              onTap: () {
-                Get.to(EmergencyScreen());
-                setState(() {
-                  screenIndex = 0;
-                  Navigator.pop(context);
-                });
-              },
-            ),
-
-            const Spacer(), // Added to push the following items to the bottom
-            ListTile(
-              leading: const Icon(Icons.logout),
-              title: const Text('Logout'),
-              onTap: () {
-                FirebaseAuth.instance.signOut();
-              },
-            ),
-          ],
-        ),
-      ),
       bottomNavigationBar: BottomNavigationBar(
         onTap: (indexNumber) {
           setState(() {
