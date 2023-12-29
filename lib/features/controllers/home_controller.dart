@@ -44,7 +44,7 @@ class HomepageController extends GetxController {
         id: id,
         dateTime: alarmTime,
         assetAudioPath: 'assets/alarm.mp3',
-        loopAudio: false, 
+        loopAudio: false,
         vibrate: true,
         volume: 0.8,
         fadeDuration: 3.0,
@@ -58,6 +58,15 @@ class HomepageController extends GetxController {
       await Alarm.set(alarmSettings: alarmSettings);
       print("Done setting alarm for $title at ${alarmTime.toIso8601String()}");
     }
+  }
+
+  bool checkIfAllIsTaken() {
+    for (var obj in dueScheduleList) {
+      if (!obj.isTaken) {
+        return false;
+      }
+    }
+    return true;
   }
 
   getAllMedicationsData() async {

@@ -185,7 +185,8 @@ class _HomePageState extends State<HomePage> {
                         const SizedBox(height: 13),
                         const Divider(thickness: 1.5, color: Colors.grey),
                         const SizedBox(height: 20),
-                        _controller.dueScheduleList.isNotEmpty
+                        _controller.dueScheduleList.isNotEmpty &&
+                                _controller.checkIfAllIsTaken() == false
                             ? const Row(
                                 children: [
                                   Text(
