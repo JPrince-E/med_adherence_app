@@ -213,7 +213,9 @@ class HomepageController extends GetxController {
   }
 
   removeFromDueList(int index) {
-    dueScheduleList[index].copyWith(isTaken: true);
+    print(" ##### dueScheduleList $index : ${dueScheduleList[index].isTaken} ");
+    dueScheduleList[index] = dueScheduleList[index].copyWith(isTaken: true);
+    print(" &&&&& dueScheduleList $index : ${dueScheduleList[index].isTaken} ");
     // dueScheduleList.removeAt(index);
     update();
   }

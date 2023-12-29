@@ -337,6 +337,7 @@ class _HomePageState extends State<HomePage> {
                         onPressed: () {
                           // Remove this element from the list using its index
                           _controller.removeFromDueList(index);
+                          setState(() {});
                         },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.white,
