@@ -44,13 +44,14 @@ class HomepageController extends GetxController {
         id: id,
         dateTime: alarmTime,
         assetAudioPath: 'assets/alarm.mp3',
-        loopAudio: true,
+        loopAudio: false, 
         vibrate: true,
         volume: 0.8,
         fadeDuration: 3.0,
         notificationTitle: title,
         notificationBody: body,
         enableNotificationOnKill: true,
+        androidFullScreenIntent: true,
       );
 
       // Set the alarm

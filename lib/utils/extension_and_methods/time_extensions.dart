@@ -48,6 +48,11 @@ String convertToTimeAgo(TimeOfDay timeOfDay) {
   difference = difference + const Duration(minutes: 1);
   final timeAgo = DateTime.now().subtract(difference.abs());
 
-  String timeAgoString = "${timeago.format(timeAgo, locale: 'en_short')} ago";
-  return timeAgoString;
+  if (timeago.format(timeAgo, locale: 'en_short') == "now") {
+    String timeAgoString = "1min ago";
+    return timeAgoString;
+  } else {
+    String timeAgoString = "${timeago.format(timeAgo, locale: 'en_short')} ago";
+    return timeAgoString;
+  }
 }
