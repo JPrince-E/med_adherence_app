@@ -103,7 +103,58 @@ class Medication {
       "noOfDays": noOfDays,
       "times": times.map((time) => _formatTime(time)).toList(),
       "colour": colour,
-      // Add other properties as needed
     };
+  }
+}
+
+class EachMedication {
+  final int id;
+  final String medicationName;
+  final String selectedAmount;
+  final String selectedDose;
+  final String noOfTimes;
+  final String noOfDays;
+  final TimeOfDay time;
+  String colour;
+  final String uid;
+  bool isTaken;
+
+  EachMedication({
+    required this.id,
+    required this.medicationName,
+    required this.selectedAmount,
+    required this.selectedDose,
+    required this.noOfTimes,
+    required this.noOfDays,
+    required this.time,
+    required this.colour,
+    required this.uid,
+    this.isTaken = false,
+  });
+
+  EachMedication copyWith({
+    int? id,
+    String? medicationName,
+    String? selectedAmount,
+    String? selectedDose,
+    String? noOfTimes,
+    String? noOfDays,
+    TimeOfDay? time,
+    String? colour,
+    String? uid,
+    bool? isTaken,
+  }) {
+    return EachMedication(
+      id: id ?? this.id,
+      uid: uid ?? this.uid,
+      medicationName: medicationName ?? this.medicationName,
+      selectedAmount: selectedAmount ?? this.selectedAmount,
+      selectedDose: selectedDose ?? this.selectedDose,
+      noOfTimes: noOfTimes ?? this.noOfTimes,
+      noOfDays: noOfDays ?? this.noOfDays,
+      time: time ?? this.time,
+      colour: colour ?? this.colour,
+      isTaken: isTaken ?? this.isTaken,
+    );
   }
 }

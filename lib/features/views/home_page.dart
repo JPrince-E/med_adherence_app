@@ -2,12 +2,14 @@
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
+import 'package:intl/intl.dart';
+import 'package:med_adherence_app/features/controllers/home_controller.dart';
 import 'package:med_adherence_app/features/models/medication_model.dart';
-import 'package:med_adherence_app/features/views/edit_schedule.dart';
 import 'package:med_adherence_app/global.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:slide_digital_clock/slide_digital_clock.dart';
+import 'package:med_adherence_app/utils/extension_and_methods/time_extensions.dart';
+import 'package:timer_builder/timer_builder.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
@@ -16,22 +18,8 @@ class HomePage extends StatefulWidget {
   State<HomePage> createState() => _HomePageState();
 }
 
-String _formatTime(TimeOfDay time) {
-  return '${time.hour}:${time.minute.toString().padLeft(2, '0')}';
-}
-
-bool isToTake = true;
-List<Medication> medicationsToTake = [];
-List<Medication> medicationsTaken = [];
-
 class _HomePageState extends State<HomePage> {
-  // late Timer _timer;
-  RxString formattedTime = RxString('');
-  RxString formattedDate = RxString('');
-
-  late String medicationTime = '';
-
-  bool isToTake = true;
+  final HomepageController _controller = HomepageController.to;
 
   String fullName = '';
   String email = '';
@@ -58,98 +46,13 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
-  String medicationName = '';
-  String selectedAmount = '';
-  String selectedDose = '';
-  String noOfTimes = '';
-  String noOfDays = '';
-  String times = '';
-  String colour = '';
-
-  retrieveMedInfo() async {
-    FirebaseFirestore.instance
-        .collection("schedule")
-        .doc(currentUserID)
-        .get()
-        .then((snapshot) {
-      if (snapshot.exists) {
-        setState(() {
-          medicationName = snapshot.data()!["medicationName"];
-          selectedAmount = snapshot.data()!["selectedAmount"];
-          selectedDose = snapshot.data()!["selectedDose"];
-          noOfTimes = snapshot.data()!["noOfTimes"];
-          noOfDays = snapshot.data()!["noOfDays"];
-          times = snapshot.data()!["times"];
-          colour = snapshot.data()!["colour"];
-
-          medicationTime = snapshot.data()!["medicationTime"];
-        });
-      }
-    });
-  }
-
   @override
   void initState() {
     super.initState();
-
     retrieveUserInfo();
-    retrieveMedInfo();
-
-    // _timer = Timer.periodic(const Duration(minutes: 1), (Timer timer) {
-    //   _updateTime();
-    // });
-
-    // _updateTime();
-  }
-
-  // void _updateTime() {
-  //   DateTime now = DateTime.now();
-  //   formattedTime.value = DateFormat('h:mm a').format(now);
-
-  //   String newFormattedDate = DateFormat('E MMM d').format(now);
-  //   if (formattedDate.value != newFormattedDate) {
-  //     formattedDate.value = newFormattedDate;
-
-  //     // Check if the current time has passed the scheduled time for each medication
-  //     moveMedicationsToTaken(now);
-  //   }
-  // }
-
-  void moveMedicationsToTaken(DateTime now) {
-    FirebaseFirestore.instance
-        .collection("schedule")
-        .doc(currentUserID)
-        .get()
-        .then((snapshot) {
-      if (snapshot.exists) {
-        List<Medication> medicationsList = [];
-        for (var med in snapshot.data()!["medications"]) {
-          medicationsList.add(Medication.fromDataSnapshot(med));
-        }
-
-        // Filter medications whose times have passed
-        List<Medication> medicationsToMove = medicationsList
-            .where((med) =>
-                med.times.isNotEmpty &&
-                med.times.any((time) => DateTime(
-                        now.year, now.month, now.day, time.hour, time.minute)
-                    .isBefore(now)))
-            .toList();
-
-        // Move medications to "Drugs Taken" for the specific occurrence
-        for (var medication in medicationsToMove) {
-          for (var time in medication.times) {
-            if (DateTime(now.year, now.month, now.day, time.hour, time.minute)
-                .isBefore(now)) {
-              // Move only the specific occurrence to "Drugs Taken"
-              _markAsTaken(medication.copyWith(times: [
-                time
-              ])); // Update the copy of the medication with only the specific time
-            }
-          }
-        }
-      }
-    });
+    if (_controller.medicationsData.isEmpty == true) {
+      _controller.getAllMedicationsData();
+    }
   }
 
   void makeEmergencyCall() async {
@@ -192,20 +95,15 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-    double screenHeight = MediaQuery.of(context).size.height;
-
     return Scaffold(
       appBar: AppBar(
-        title: Row(
-          children: [
-            IconButton(
-              icon: const Icon(Icons.menu),
-              onPressed: () {
-                Scaffold.of(context).openDrawer();
-              },
-            ),
-            Text("Hi $fullName"),
-          ],
+        title: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Row(
+            children: [
+              Text("Hi $fullName"),
+            ],
+          ),
         ),
         automaticallyImplyLeading: false,
         actions: [
@@ -222,315 +120,591 @@ class _HomePageState extends State<HomePage> {
           ),
         ],
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: [
-                // Obx(() => Text(
-                //       "$formattedDate\n${formattedTime.value}",
-                //       style: const TextStyle(
-                //         color: Colors.black,
-                //         fontSize: 25,
-                //         fontWeight: FontWeight.bold,
-                //       ),
-                //     )),
-
-                DigitalClock(
-                  hourDigitDecoration: BoxDecoration(
-                      color: Colors.yellow,
-                      border: Border.all(color: Colors.blue, width: 2)),
-                  minuteDigitDecoration: BoxDecoration(
-                      color: Colors.yellow,
-                      border: Border.all(color: Colors.red, width: 2)),
-                  secondDigitDecoration: BoxDecoration(
-                      color: Colors.blueGrey,
-                      border: Border.all(color: Colors.blue),
-                      shape: BoxShape.circle),
-                  secondDigitTextStyle: Theme.of(context)
-                      .textTheme
-                      .caption!
-                      .copyWith(color: Colors.white),
-                ),
-                CircleAvatar(
-                  backgroundImage: NetworkImage(imageProfile),
-                  radius: 45,
-                ),
-              ],
-            ),
-            const SizedBox(height: 24),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                TextButton(
-                  onPressed: () {
-                    setState(() {
-                      isToTake = true;
-                    });
-                  },
-                  child: const Text(
-                    "Drugs To Take",
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 14,
+      body: _controller.loading == true
+          ? const Center(
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                color: Colors.blue,
+              ),
+            )
+          : TimerBuilder.periodic(
+              const Duration(minutes: 1),
+              builder: (context) {
+                print(' >>>>> Checking time . . .');
+                // Continously check if time for the medication is due
+                _controller.updateListWithTime();
+                _controller.checkDueSchedules();
+                return SingleChildScrollView(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Container(
+                    color: Colors.transparent,
+                    child: Column(
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceAround,
+                          children: [
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Text(
+                                  DateFormat.yMMMMEEEEd()
+                                      .format(DateTime.now())
+                                      .toString(),
+                                  style: const TextStyle(
+                                    fontSize: 15,
+                                    color: Colors.black,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                                DigitalClock(
+                                  is24HourTimeFormat: false,
+                                  hourMinuteDigitTextStyle: const TextStyle(
+                                    fontSize: 35,
+                                    color: Colors.blue,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                  showSecondsDigit: false,
+                                  amPmDigitTextStyle: const TextStyle(
+                                    fontSize: 15,
+                                    color: Colors.black,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            CircleAvatar(
+                              backgroundImage: NetworkImage(imageProfile),
+                              radius: 45,
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 13),
+                        const Divider(thickness: 1.5, color: Colors.grey),
+                        const SizedBox(height: 20),
+                        _controller.dueScheduleList.isNotEmpty &&
+                                _controller.checkIfAllIsTaken() == false
+                            ? const Row(
+                                children: [
+                                  Text(
+                                    "Due Already",
+                                    style: TextStyle(
+                                      color: Colors.black,
+                                      fontSize: 22,
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                                  ),
+                                ],
+                              )
+                            : const SizedBox.shrink(),
+                        _controller.dueScheduleList.isNotEmpty
+                            ? Container(
+                                color: Colors.grey[50],
+                                child: ListView.builder(
+                                  padding:
+                                      const EdgeInsets.symmetric(vertical: 5),
+                                  reverse: false,
+                                  physics: const ClampingScrollPhysics(),
+                                  shrinkWrap: true,
+                                  itemCount: _controller.dueScheduleList.length,
+                                  itemBuilder:
+                                      (BuildContext context, int index) {
+                                    return _buildDueMedicationCard(
+                                      _controller.dueScheduleList[index],
+                                      index,
+                                    );
+                                  },
+                                ),
+                              )
+                            : const SizedBox.shrink(),
+                        Container(
+                          color: Colors.grey[50],
+                          child: ListView.builder(
+                            padding: const EdgeInsets.symmetric(vertical: 10),
+                            reverse: false,
+                            physics: const ClampingScrollPhysics(),
+                            shrinkWrap: true,
+                            itemCount: _controller.scheduleList.length,
+                            itemBuilder: (BuildContext context, int index) {
+                              return index == 0
+                                  ? _buildUpNextMedicationCard(
+                                      _controller.scheduleList[index],
+                                    )
+                                  : _buildFutureMedicationCard(
+                                      _controller.scheduleList[index],
+                                    );
+                            },
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                ),
-                const Text(
-                  "   |   ",
-                ),
-                TextButton(
-                  onPressed: () {
-                    setState(() {
-                      isToTake = false;
-                    });
-                  },
-                  child: const Text(
-                    "Drugs Taken",
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 14,
-                    ),
-                  ),
-                ),
-              ],
+                );
+              },
             ),
-            isToTake
-                ? _viewToTake(screenHeight * 0.56)
-                : _viewTaken(screenHeight * 0.56)
-          ],
-        ),
-      ),
     );
   }
-}
 
-Widget _viewToTake(double height) {
-  return SingleChildScrollView(
-    child: SizedBox(
-      height: height,
-      child: StreamBuilder(
-        stream: FirebaseFirestore.instance.collection('schedule').snapshots(),
-        builder: (context, AsyncSnapshot snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          } else if (!snapshot.hasData || snapshot.data.docs.isEmpty) {
-            return const Center(
-              child: Text("No Schedule Available"),
-            );
-          } else {
-            List<Medication> medicationsList = [];
-            for (var med in snapshot.data.docs) {
-              medicationsList.add(Medication.fromDataSnapshot(med));
-            }
+  Widget _buildDueMedicationCard(EachMedication medicationSchedule, int index) {
+    String hexColor = medicationSchedule.colour;
 
-            DateTime now = DateTime.now();
-            List<Medication> drugsToTake = medicationsList
-                .where((med) =>
-                    med.times.isNotEmpty &&
-                    med.times.any((time) => DateTime(now.year, now.month,
-                            now.day, time.hour, time.minute)
-                        .isAfter(now)))
-                .toList();
-
-            return SingleChildScrollView(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  _buildMedicationList("Drugs To Take", drugsToTake),
-                  const SizedBox(height: 16.0),
-                ],
-              ),
-            );
-          }
-        },
-      ),
-    ),
-  );
-}
-
-Widget _viewTaken(double height) {
-  return SingleChildScrollView(
-    child: SizedBox(
-      height: height,
-      child: StreamBuilder(
-        stream: FirebaseFirestore.instance.collection('schedule').snapshots(),
-        builder: (context, AsyncSnapshot snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          } else if (!snapshot.hasData || snapshot.data.docs.isEmpty) {
-            return const Center(
-              child: Text("No Schedule Available"),
-            );
-          } else {
-            List<Medication> medicationsList = [];
-            for (var med in snapshot.data.docs) {
-              medicationsList.add(Medication.fromDataSnapshot(med));
-            }
-
-            DateTime now = DateTime.now();
-            List<Medication> drugsTaken = medicationsList
-                .where((med) =>
-                    med.times.isNotEmpty &&
-                    med.times.any((time) => DateTime(now.year, now.month,
-                            now.day, time.hour, time.minute)
-                        .isBefore(now)))
-                .toList();
-
-            return SingleChildScrollView(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  _buildMedicationList("Drugs Taken", drugsTaken),
-                  const SizedBox(height: 16.0),
-                ],
-              ),
-            );
-          }
-        },
-      ),
-    ),
-  );
-}
-
-Widget _buildMedicationList(String title, List<Medication> medications) {
-  return SingleChildScrollView(
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const SizedBox(height: 8.0),
-        if (medications.isNotEmpty)
-          ...medications.map(
-            (medication) {
-              // Create a card for each time associated with the medication
-              return Column(
-                children: medication.times
-                    .map((time) =>
-                        _buildMedicationCard(medication, time, isToTake))
-                    .toList(),
-              );
-            },
-          ),
-        if (medications.isEmpty)
-          const Center(
-            child: Text("No Medication in this category"),
-          ),
-      ],
-    ),
-  );
-}
-
-Widget _buildMedicationCard(
-    Medication medication, TimeOfDay time, bool isToTake) {
-  String hexColor = medication.colour;
-
-  return Card(
-    color: Colors.blue.shade200,
-    margin: const EdgeInsets.all(10),
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        ListTile(
-          contentPadding:
-              const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-          leading: CircleAvatar(
-            radius: 30,
-            backgroundColor: Color(
-                int.parse(hexColor.substring(1, 7), radix: 16) + 0xFF000000),
-            child: CircleAvatar(
-              radius: 20,
-              backgroundColor: Color(
-                  int.parse(hexColor.substring(1, 7), radix: 16) + 0xFF000000),
-              backgroundImage: const AssetImage("images/logo.png"),
+    return medicationSchedule.isTaken == true
+        ? const SizedBox.shrink()
+        : Card(
+            elevation: 4,
+            color: Colors.orange,
+            margin: const EdgeInsets.symmetric(horizontal: 0, vertical: 10),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                ListTile(
+                  contentPadding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                  leading: CircleAvatar(
+                    radius: 30,
+                    backgroundColor: Color(
+                        int.parse(hexColor.substring(1, 7), radix: 16) +
+                            0xFF000000),
+                    child: CircleAvatar(
+                      radius: 20,
+                      backgroundColor: Color(
+                          int.parse(hexColor.substring(1, 7), radix: 16) +
+                              0xFF000000),
+                      backgroundImage: const AssetImage("assets/logo.png"),
+                    ),
+                  ),
+                  title: Text(
+                    medicationSchedule.medicationName,
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                  subtitle: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        children: [
+                          Text(
+                            medicationSchedule.selectedAmount,
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.normal,
+                            ),
+                          ),
+                          const SizedBox(width: 30),
+                          Text(
+                            medicationSchedule.selectedDose,
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.normal,
+                            ),
+                          ),
+                        ],
+                      ),
+                      Text(
+                        'Time: ${_formatTime(medicationSchedule.time)}',
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.normal,
+                        ),
+                      ),
+                      // Show time ago
+                      Text(
+                        convertToTimeAgo(medicationSchedule.time),
+                        style: const TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ],
+                  ),
+                  onTap: () {
+                    // Handle card tap
+                  },
+                ),
+                Container(
+                  margin: const EdgeInsets.fromLTRB(20, 5, 20, 10),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      ElevatedButton(
+                        onPressed: () {
+                          // Remove this element from the list using its index
+                          _controller.removeFromDueList(index);
+                          setState(() {});
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.white,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(20.0),
+                          ),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 45, vertical: 3),
+                        ),
+                        child: Icon(Icons.cancel, color: Colors.red.shade800),
+                      ),
+                      ElevatedButton(
+                        onPressed: () {
+                          // Show thumbs up dialog here
+                          _showCoolDialog();
+                          _controller.removeFromDueList(index);
+                          setState(() {});
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.white,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(20.0),
+                          ),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 45, vertical: 3),
+                        ),
+                        child:
+                            const Icon(Icons.check_circle, color: Colors.green),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ),
-          ),
-          title: Text(
-            medication.medicationName,
-            style: const TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
-            ),
-          ),
-          subtitle: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+          );
+  }
+
+  Widget _buildUpNextMedicationCard(EachMedication medicationSchedule) {
+    String hexColor = medicationSchedule.colour;
+
+    return SizedBox(
+      child: Column(
+        children: [
+          const Row(
             children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.start,
-                children: [
-                  Text(
-                    medication.selectedAmount,
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.normal,
-                    ),
-                  ),
-                  const SizedBox(
-                    width: 30,
-                  ),
-                  Text(
-                    medication.selectedDose,
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.normal,
-                    ),
-                  ),
-                ],
-              ),
               Text(
-                'Time: ${_formatTime(time)}',
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.normal,
+                "Up Next",
+                style: TextStyle(
+                  color: Colors.black,
+                  fontSize: 22,
+                  fontWeight: FontWeight.w700,
                 ),
               ),
             ],
           ),
-          trailing: IconButton(
-            onPressed: () {
-              // Handle "Edit" button click
-              Get.to(const EditSchedule());
-            },
-            icon: const Icon(Icons.edit, color: Colors.white),
-          ),
-          onTap: () {
-            // Handle card tap
-          },
-        ),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          children: [
-            IconButton(
-              onPressed: () {
-                // Handle "Mark as Not Taken" button click
-                // Move medication back to "Drugs To Take"
-                _markAsNotTaken(medication);
-              },
-              icon: const Icon(Icons.cancel, color: Colors.red),
+          const SizedBox(height: 5),
+          Card(
+            elevation: 4,
+            color: Colors.blue.shade600,
+            margin: const EdgeInsets.symmetric(horizontal: 0, vertical: 10),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                ListTile(
+                  contentPadding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                  leading: CircleAvatar(
+                    radius: 30,
+                    backgroundColor: Color(
+                        int.parse(hexColor.substring(1, 7), radix: 16) +
+                            0xFF000000),
+                    child: CircleAvatar(
+                      radius: 20,
+                      backgroundColor: Color(
+                          int.parse(hexColor.substring(1, 7), radix: 16) +
+                              0xFF000000),
+                      backgroundImage: const AssetImage("assets/logo.png"),
+                    ),
+                  ),
+                  title: Text(
+                    medicationSchedule.medicationName,
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                  subtitle: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        children: [
+                          Text(
+                            medicationSchedule.selectedAmount,
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.normal,
+                            ),
+                          ),
+                          const SizedBox(width: 30),
+                          Text(
+                            medicationSchedule.selectedDose,
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.normal,
+                            ),
+                          ),
+                        ],
+                      ),
+                      Text(
+                        'Time: ${_formatTime(medicationSchedule.time)}',
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.normal,
+                        ),
+                      ),
+                      // Show time remaining
+                      Text(
+                        convertTimeOfDayToDateTime(medicationSchedule.time),
+                        style: const TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ],
+                  ),
+                  onTap: () {
+                    // Handle card tap
+                  },
+                ),
+                Container(
+                  margin: const EdgeInsets.fromLTRB(20, 5, 20, 10),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      ElevatedButton(
+                        onPressed: () {
+                          // Remove this from the schedule list
+                          _showConfirmationDialog(
+                            context,
+                            " ${medicationSchedule.medicationName}, ${medicationSchedule.selectedAmount}, ${medicationSchedule.selectedDose}",
+                          );
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.white54,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(20.0),
+                          ),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 45, vertical: 3),
+                        ),
+                        child: Icon(Icons.cancel, color: Colors.red.shade600),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ),
-            IconButton(
-              onPressed: () {
-                // Handle "Mark as Taken" button click
-                // Move medication to "Drugs Taken"
-                _markAsTaken(medication);
-              },
-              icon: const Icon(Icons.check_circle, color: Colors.green),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFutureMedicationCard(EachMedication medicationSchedule) {
+    String hexColor = medicationSchedule.colour;
+
+    return Card(
+      elevation: 4,
+      color: Colors.blue.shade100,
+      margin: const EdgeInsets.symmetric(horizontal: 0, vertical: 10),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          ListTile(
+            contentPadding:
+                const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+            leading: CircleAvatar(
+              radius: 30,
+              backgroundColor: Color(
+                  int.parse(hexColor.substring(1, 7), radix: 16) + 0xFF000000),
+              child: CircleAvatar(
+                radius: 20,
+                backgroundColor: Color(
+                    int.parse(hexColor.substring(1, 7), radix: 16) +
+                        0xFF000000),
+                backgroundImage: const AssetImage("assets/logo.png"),
+              ),
+            ),
+            title: Text(
+              medicationSchedule.medicationName,
+              style: const TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
+            ),
+            subtitle: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  children: [
+                    Text(
+                      medicationSchedule.selectedAmount,
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.normal,
+                      ),
+                    ),
+                    const SizedBox(
+                      width: 30,
+                    ),
+                    Text(
+                      medicationSchedule.selectedDose,
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.normal,
+                      ),
+                    ),
+                  ],
+                ),
+                Text(
+                  'Time: ${_formatTime(medicationSchedule.time)}',
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.normal,
+                  ),
+                ),
+                // Show time remaining
+                Text(
+                  convertTimeOfDayToDateTime(medicationSchedule.time),
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.blue.shade800,
+                  ),
+                ),
+              ],
+            ),
+            onTap: () {
+              // Handle card tap
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  _showCoolDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return SimpleDialog(
+          children: [
+            Container(
+              padding: const EdgeInsets.symmetric(vertical: 20),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Text(
+                    'Well done!',
+                    style: TextStyle(
+                      color: Colors.green,
+                      fontSize: 20,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  Image.asset('assets/thumbs_up.gif', height: 120),
+                  const SizedBox(height: 20),
+                  InkWell(
+                    onTap: () => Navigator.of(context).pop(),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 20,
+                        vertical: 10,
+                      ),
+                      decoration: BoxDecoration(
+                        border: Border.all(color: Colors.amber, width: 2),
+                        borderRadius: BorderRadius.circular(15),
+                      ),
+                      child: const Text(
+                        'Okay',
+                        style: TextStyle(
+                          color: Colors.black,
+                          fontSize: 18,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  )
+                ],
+              ),
+            )
+          ],
+        );
+      },
+    );
+  }
+
+  void _showConfirmationDialog(BuildContext context, String medicationSummary) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10.0), // Rounded corners
+          ),
+          title: const Text(
+            'Confirm',
+            style: TextStyle(
+              color: Colors.black,
+              fontSize: 20,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          content: Text(
+            'Are you sure you want to cancel notification for $medicationSummary?',
+            style: const TextStyle(
+              color: Colors.black,
+              fontSize: 15,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          actions: <Widget>[
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                TextButton(
+                  onPressed: () {
+                    // Cancel logic here
+                    _controller.removeFromFutureList();
+                    Navigator.of(context).pop();
+                    setState(() {});
+                  },
+                  child: Text(
+                    'YES',
+                    style: TextStyle(
+                      color: Colors.red.shade700,
+                      fontSize: 22,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                  child: const Text(
+                    'NO',
+                    style: TextStyle(
+                      color: Colors.blue,
+                      fontSize: 22,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+              ],
             ),
           ],
-        ),
-      ],
-    ),
-  );
+        );
+      },
+    );
+  }
 }
 
-void _markAsTaken(Medication medication) {
-  // Add logic to mark medication as taken and move it to "Drugs Taken"
-  // You can update the Firestore data or use other state management solutions
-}
-
-void _markAsNotTaken(Medication medication) {
-  // Add logic to mark medication as not taken and move it back to "Drugs To Take"
-  // You can update the Firestore data or use other state management solutions
+String _formatTime(TimeOfDay time) {
+  return '${time.hour}:${time.minute.toString().padLeft(2, '0')}';
 }
