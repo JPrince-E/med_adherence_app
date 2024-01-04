@@ -19,8 +19,10 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
-  String fullName = '', email = '', location = '', gender = '';
-  int? age;
+  String fullName = '', email = ''
+      // location = '', gender = ''
+  ;
+  // int? age;
   String imageProfile =
       'https://firebasestorage.googleapis.com/v0/b/dating-app-a5c06.appspot.com/o/Place%20Holder%2Fprofile_avatar.jpg?alt=media&token=dea921b1-1228-47c2-bc7b-01fb05bd8e2d';
 
@@ -39,9 +41,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
         setState(() {
           fullName = snapshot.data()!["fullName"];
           email = snapshot.data()!["email"];
-          location = snapshot.data()!["location"];
-          gender = snapshot.data()!["gender"];
-          age = snapshot.data()!["age"];
+          // location = snapshot.data()!["location"];
+          // gender = snapshot.data()!["gender"];
+          // age = snapshot.data()!["age"];
         });
       }
     });
@@ -80,23 +82,23 @@ class _ProfileScreenState extends State<ProfileScreen> {
               foregroundColor: Colors.black, // Add a border color
             ),
             const SizedBox(height: 20),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(
-                  Icons.person_2_outlined,
-                  color: Colors.blue.shade900,
-                  size: 30,
-                ),
-                const SizedBox(width: 10),
-                Text(
-                  fullName,
-                  style: const TextStyle(
-                      fontSize: 24, fontWeight: FontWeight.bold),
-                  textAlign: TextAlign.center,
-                ),
-              ],
-            ),
+            // Row(
+            //   mainAxisAlignment: MainAxisAlignment.center,
+            //   children: [
+            //     Icon(
+            //       Icons.person_2_outlined,
+            //       color: Colors.blue.shade900,
+            //       size: 30,
+            //     ),
+            //     const SizedBox(width: 10),
+            //     Text(
+            //       fullName,
+            //       style: const TextStyle(
+            //           fontSize: 24, fontWeight: FontWeight.bold),
+            //       textAlign: TextAlign.center,
+            //     ),
+            //   ],
+            // ),
             const SizedBox(height: 15),
             Container(
               padding: const EdgeInsets.symmetric(vertical: 20),
@@ -108,6 +110,25 @@ class _ProfileScreenState extends State<ProfileScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
+                  const SizedBox(height: 15),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.person_2_outlined,
+                        color: Colors.blue.shade900,
+                        size: 30,
+                      ),
+                      const SizedBox(width: 10),
+                      Text(
+                        fullName,
+                        style: const TextStyle(
+                            fontSize: 24, fontWeight: FontWeight.bold),
+                        textAlign: TextAlign.center,
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 15),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
@@ -128,65 +149,66 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ],
                   ),
                   const SizedBox(height: 15),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(
-                        Icons.supervisor_account_rounded,
-                        color: Colors.purple.shade900,
-                        size: 30,
-                      ),
-                      const SizedBox(width: 10),
-                      Text(
-                        gender,
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 15),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(
-                        Icons.assignment_ind_outlined,
-                        color: Colors.green.shade800,
-                        size: 30,
-                      ),
-                      const SizedBox(width: 10),
-                      Text(
-                        age.toString(),
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 15),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(
-                        Icons.location_on_outlined,
-                        color: Colors.red.shade900,
-                        size: 30,
-                      ),
-                      const SizedBox(width: 10),
-                      Text(
-                        location,
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                    ],
-                  ),
+                  // const SizedBox(height: 15),
+                  // Row(
+                  //   mainAxisAlignment: MainAxisAlignment.center,
+                  //   children: [
+                  //     Icon(
+                  //       Icons.supervisor_account_rounded,
+                  //       color: Colors.purple.shade900,
+                  //       size: 30,
+                  //     ),
+                  //     const SizedBox(width: 10),
+                  //     Text(
+                  //       gender,
+                  //       style: const TextStyle(
+                  //         fontSize: 16,
+                  //         fontWeight: FontWeight.bold,
+                  //       ),
+                  //       textAlign: TextAlign.center,
+                  //     ),
+                  //   ],
+                  // ),
+                  // const SizedBox(height: 15),
+                  // Row(
+                  //   mainAxisAlignment: MainAxisAlignment.center,
+                  //   children: [
+                  //     Icon(
+                  //       Icons.assignment_ind_outlined,
+                  //       color: Colors.green.shade800,
+                  //       size: 30,
+                  //     ),
+                  //     const SizedBox(width: 10),
+                  //     Text(
+                  //       age.toString(),
+                  //       style: const TextStyle(
+                  //         fontSize: 16,
+                  //         fontWeight: FontWeight.bold,
+                  //       ),
+                  //       textAlign: TextAlign.center,
+                  //     ),
+                  //   ],
+                  // ),
+                  // const SizedBox(height: 15),
+                  // Row(
+                  //   mainAxisAlignment: MainAxisAlignment.center,
+                  //   children: [
+                  //     Icon(
+                  //       Icons.location_on_outlined,
+                  //       color: Colors.red.shade900,
+                  //       size: 30,
+                  //     ),
+                  //     const SizedBox(width: 10),
+                  //     Text(
+                  //       location,
+                  //       style: const TextStyle(
+                  //         fontSize: 16,
+                  //         fontWeight: FontWeight.bold,
+                  //       ),
+                  //       textAlign: TextAlign.center,
+                  //     ),
+                  //   ],
+                  // ),
                 ],
               ),
             ),

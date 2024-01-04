@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
-import 'package:go_router/go_router.dart';
 import 'package:med_adherence_app/features/controllers/auth_controller.dart';
+import 'package:med_adherence_app/features/views/sign_up.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -116,8 +116,8 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                     InkWell(
                       onTap: () {
-                        // Get.to(SignUpScreen());
-                        context.push('/signUp');
+                        Get.to(const SignUpScreen());
+                        // context.push('/signUp');
                       },
                       child: const Text(
                         "Create Here",

@@ -5,11 +5,12 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:med_adherence_app/features/models/medication_model.dart';
 import 'package:alarm/alarm.dart';
+import 'package:med_adherence_app/global.dart';
 
 class HomepageController extends GetxController {
   static HomepageController get to => Get.find();
 
-  bool loading = true;
+  bool loading = false;
   List<Medication> medicationsData = [];
   List<EachMedication> scheduleList = [],
       dueScheduleList = [],
@@ -80,6 +81,7 @@ class HomepageController extends GetxController {
 
     await FirebaseFirestore.instance
         .collection('schedule')
+        .where('uid', isEqualTo: currentUserID)
         .get()
         .then((QuerySnapshot querySnapshot) {
       for (var med in querySnapshot.docs) {

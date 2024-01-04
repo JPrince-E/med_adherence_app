@@ -12,7 +12,12 @@ import 'package:med_adherence_app/utils/extension_and_methods/time_extensions.da
 import 'package:timer_builder/timer_builder.dart';
 
 class HomePage extends StatefulWidget {
-  const HomePage({Key? key}) : super(key: key);
+  String? userID;
+
+  HomePage({
+    super.key,
+    this.userID,
+  });
 
   @override
   State<HomePage> createState() => _HomePageState();
@@ -52,6 +57,7 @@ class _HomePageState extends State<HomePage> {
     retrieveUserInfo();
     if (_controller.medicationsData.isEmpty == true) {
       _controller.getAllMedicationsData();
+      _controller.loading= false;
     }
   }
 
