@@ -3,6 +3,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:firebase_storage/firebase_storage.dart';
@@ -155,13 +156,15 @@ class AuthController extends GetxController {
   }
 
   void gotoHomepage(BuildContext context) async {
-    await saveSharedPrefsStringValue("username", emailController.text.trim());
+    await saveSharedPrefsStringValue("fullName", emailController.text.trim());
     await saveSharedPrefsStringValue("imageProfile", imageUrl!);
     print('Going to homepage page');
     resetValues();
+    update();
     Get.off(HomeScreen(
       userID: FirebaseAuth.instance.currentUser!.uid,
     ));
+    update();
     // context.go('/homepage');
   }
 
@@ -184,31 +187,192 @@ class AuthController extends GetxController {
     }
   }
 
+
+
   Future<void> checkIfUserExistsForSignIn(BuildContext context) async {
     print('checking If User Exists');
 
     try {
-      // Sign in the user with email and password
-      await FirebaseAuth.instance.signInWithEmailAndPassword(
-        email: emailController.text.trim(),
-        password: passwordController.text.trim(),
-      );
+      // Check if user data exists in Firestore
+      final userSnapshot = await FirebaseFirestore.instance
+          .collection('users')
+          .where('email', isEqualTo: emailController.text.trim())
+          .get();
 
-      // If successful, navigate to the desired screen
-      GlobalVariables.myUsername = emailController.text.trim();
-      print("GlobalVariables.myUsername: ${GlobalVariables.myUsername}");
-      Get.off(() => HomeScreen(
-            userID: FirebaseAuth.instance.currentUser!.uid,
-          ));
-      // context.pushReplacement('/homepage');
+      if (userSnapshot.docs.isNotEmpty) {
+        // User exists in Firestore, sign in the user
+        await FirebaseAuth.instance.signInWithEmailAndPassword(
+          email: emailController.text.trim(),
+          password: passwordController.text.trim(),
+        );
+
+        // If successful, navigate to the desired screen
+        GlobalVariables.myUsername = emailController.text.trim();
+        print("GlobalVariables.myUsername: ${GlobalVariables.myUsername}");
+
+        Get.off(() => HomeScreen(
+          userID: FirebaseAuth.instance.currentUser!.uid,
+        ));
+      } else {
+        // User does not exist in Firestore
+        print('User does not exist in Firestore');
+        errMessage = "Error! User data not found";
+        showLoading = false;
+        update();
+      }
     } catch (error) {
-      // Handle the authentication error
-      print('Authentication error: $error');
-      errMessage = "Error! Username or password incorrect";
+      // Handle Firestore error or authentication error
+      print('Error: $error');
+      errMessage = "Error! Unable to check user data";
       showLoading = false;
       update();
     }
   }
+
+  Future<void> checkIfUserExistsInFirestore(BuildContext context) async {
+    try {
+      // Check if user data exists in Firestore
+      final userSnapshot = await FirebaseFirestore.instance
+          .collection('users')
+          .where('email', isEqualTo: emailController.text.trim())
+          .get();
+
+      if (userSnapshot.docs.isNotEmpty) {
+        // User exists in Firestore, navigate to home screen
+        Get.off(() => HomeScreen(
+          userID: FirebaseAuth.instance.currentUser!.uid,
+        ));
+      } else {
+        // User does not exist in Firestore
+        print('User does not exist in Firestore');
+        errMessage = "Error! User data not found";
+        showLoading = false;
+        update();
+      }
+    } catch (error) {
+      // Handle Firestore error
+      print('Firestore error: $error');
+      errMessage = "Error! Unable to check user data";
+      showLoading = false;
+      update();
+    }
+  }
+
+
+  Future<void> registerUser(BuildContext context) async {
+    if (imageFILE != null) {
+      try {
+        // Display loading indicator
+        showLoading = true;
+        update();
+
+        // Create the user with email and password
+        UserCredential userCredential =
+        await FirebaseAuth.instance.createUserWithEmailAndPassword(
+          email: emailController.text.trim(),
+          password: passwordController.text.trim(),
+        );
+
+        // Upload image to cloud storage
+        final firebaseStorage = FirebaseStorage.instance;
+        var file = File(imageFILE!.path);
+        var snapshot = await firebaseStorage
+            .ref()
+            .child(
+            'user_profile_images/${userCredential.user!.uid}')
+            .putFile(file);
+
+        // Generate download URL
+        var downloadUrl = await snapshot.ref.getDownloadURL();
+        imageUrl = downloadUrl;
+
+        // Create UserAccountModel instance
+        UserAccountModel createAccountData = UserAccountModel(
+          uid: userCredential.user!.uid,
+          fullName: fullNameController.text.trim(),
+          email: emailController.text.trim(),
+          password: passwordController.text.trim(),
+          imageProfile: imageUrl,
+        );
+
+        // Save user data to Firestore
+        await FirebaseFirestore.instance
+            .collection('users')
+            .doc(userCredential.user!.uid)
+            .set(createAccountData.toJson());
+        update();
+
+        // // Display success message
+        // showCustomSnackBar(
+        //   context,
+        //   "User ${emailController.text.trim()} created",
+        //       () {},
+        //   Colors.green,
+        //   1000,
+        // );
+
+        // Update state and navigate to home screen
+        GlobalVariables.myUsername = emailController.text.trim();
+        update();
+        Get.snackbar(
+          "Account Created",
+          "Congratulations, your account has been created",
+        );
+        errMessage = "";
+        showLoading = false;
+        update();
+        Get.off(() => HomeScreen(
+          userID: FirebaseAuth.instance.currentUser!.uid,
+        ));
+        // gotoHomepage(context);
+      } catch (error) {
+        // Handle registration error
+        print('------------------------------------------------------------------Error from here>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>: $error');
+        Get.snackbar(
+          "Account Creation Unsuccessful",
+          "Error occurred: $error",
+        );
+        print('------------------------------------------------------------------Error from here>>>>>>>>>>>>>>>>>>>>>>>>: $error');
+        showLoading = false;
+        update();
+      }
+      update();
+    }
+    update();
+  }
+
+
+
+
+
+
+
+
+  // Future<void> checkIfUserExistsForSignIn(BuildContext context) async {
+  //   print('checking If User Exists');
+  //
+  //   try {
+  //     // Sign in the user with email and password
+  //     await FirebaseAuth.instance.signInWithEmailAndPassword(
+  //       email: emailController.text.trim(),
+  //       password: passwordController.text.trim(),
+  //     );
+  //
+  //     // If successful, navigate to the desired screen
+  //     GlobalVariables.myUsername = emailController.text.trim();
+  //     print("GlobalVariables.myUsername: ${GlobalVariables.myUsername}");
+  //     Get.off(() => HomeScreen(
+  //           userID: FirebaseAuth.instance.currentUser!.uid,
+  //         ));
+  //     // context.pushReplacement('/homepage');
+  //   } catch (error) {
+  //     // Handle the authentication error
+  //     print('Authentication error: $error');
+  //     errMessage = "Error! Username or password incorrect";
+  //     showLoading = false;
+  //     update();
+  //   }
+  // }
 
   void attemptToRegisterUser(BuildContext context) {
     print('attemptToRegisterUser . . .');
@@ -247,9 +411,9 @@ class AuthController extends GetxController {
       userExisting = emailController.text.trim();
       showLoading = false;
       update();
-      Get.off(() => HomeScreen(
-            userID: FirebaseAuth.instance.currentUser!.uid,
-          ));
+      // Get.off(() => HomeScreen(
+      //       userID: FirebaseAuth.instance.currentUser!.uid,
+      //     ));
       // context.pushReplacement('/homepage');
     } else {
       print('User does not exist. Creating new user . . .');
@@ -257,77 +421,77 @@ class AuthController extends GetxController {
     }
   }
 
-  Future<void> registerUser(BuildContext context) async {
-    if (imageFILE != null) {
-      try {
-        // Display loading indicator
-        showLoading = true;
-        update();
-
-        // Create the user with email and password
-        UserCredential userCredential =
-            await FirebaseAuth.instance.createUserWithEmailAndPassword(
-          email: emailController.text.trim(),
-          password: passwordController.text.trim(),
-        );
-
-        // Upload image to cloud storage
-        final firebaseStorage = FirebaseStorage.instance;
-        var file = File(imageFILE!.path);
-        var snapshot = await firebaseStorage
-            .ref()
-            .child(
-                'own_the_city/user_profile_images/${userCredential.user!.uid}')
-            .putFile(file);
-
-        // Generate download URL
-        var downloadUrl = await snapshot.ref.getDownloadURL();
-        imageUrl = downloadUrl;
-
-        // Create UserAccountModel instance
-        UserAccountModel createAccountData = UserAccountModel(
-          uid: userCredential.user!.uid,
-          fullName: fullNameController.text.trim(),
-          email: emailController.text.trim(),
-          password: passwordController.text.trim(),
-          imageProfile: imageUrl,
-        );
-
-        // Save user data to Realtime Database
-        DatabaseReference ref = FirebaseDatabase.instance
-            .ref("user_details/${createAccountData.email}");
-        await ref.set(createAccountData.toJson());
-
-        // Display success message
-        showCustomSnackBar(
-          context,
-          "User ${emailController.text.trim()} created",
-          () {},
-          Colors.green,
-          1000,
-        );
-
-        // Update state and navigate to homepage
-        GlobalVariables.myUsername = emailController.text.trim();
-        Get.snackbar(
-          "Account Created",
-          "Congratulations, your account has been created",
-        );
-        errMessage = "";
-        showLoading = false;
-        update();
-        gotoHomepage(context);
-      } catch (error) {
-        // Handle registration error
-        Get.snackbar(
-          "Account Creation Unsuccessful",
-          "Error occurred: $error",
-        );
-        showLoading = false;
-        update();
-      }
-    }
-  }
+  // Future<void> registerUser(BuildContext context) async {
+  //   if (imageFILE != null) {
+  //     try {
+  //       // Display loading indicator
+  //       showLoading = true;
+  //       update();
+  //
+  //       // Create the user with email and password
+  //       UserCredential userCredential =
+  //           await FirebaseAuth.instance.createUserWithEmailAndPassword(
+  //         email: emailController.text.trim(),
+  //         password: passwordController.text.trim(),
+  //       );
+  //
+  //       // Upload image to cloud storage
+  //       final firebaseStorage = FirebaseStorage.instance;
+  //       var file = File(imageFILE!.path);
+  //       var snapshot = await firebaseStorage
+  //           .ref()
+  //           .child(
+  //               'own_the_city/user_profile_images/${userCredential.user!.uid}')
+  //           .putFile(file);
+  //
+  //       // Generate download URL
+  //       var downloadUrl = await snapshot.ref.getDownloadURL();
+  //       imageUrl = downloadUrl;
+  //
+  //       // Create UserAccountModel instance
+  //       UserAccountModel createAccountData = UserAccountModel(
+  //         uid: userCredential.user!.uid,
+  //         fullName: fullNameController.text.trim(),
+  //         email: emailController.text.trim(),
+  //         password: passwordController.text.trim(),
+  //         imageProfile: imageUrl,
+  //       );
+  //
+  //       // Save user data to Realtime Database
+  //       DatabaseReference ref = FirebaseDatabase.instance
+  //           .ref("user_details/${createAccountData.email}");
+  //       await ref.set(createAccountData.toJson());
+  //
+  //       // Display success message
+  //       showCustomSnackBar(
+  //         context,
+  //         "User ${emailController.text.trim()} created",
+  //         () {},
+  //         Colors.green,
+  //         1000,
+  //       );
+  //
+  //       // Update state and navigate to homepage
+  //       GlobalVariables.myUsername = emailController.text.trim();
+  //       Get.snackbar(
+  //         "Account Created",
+  //         "Congratulations, your account has been created",
+  //       );
+  //       errMessage = "";
+  //       showLoading = false;
+  //       update();
+  //       gotoHomepage(context);
+  //     } catch (error) {
+  //       // Handle registration error
+  //       Get.snackbar(
+  //         "Account Creation Unsuccessful",
+  //         "Error occurred: $error",
+  //       );
+  //       showLoading = false;
+  //       update();
+  //     }
+  //   }
+  // }
 
 
   loginUser(String emailUser, String passwordUser) async {

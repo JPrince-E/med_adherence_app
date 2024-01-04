@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:med_adherence_app/features/controllers/home_controller.dart';
 import 'package:med_adherence_app/features/controllers/schedule_controller.dart';
 
 class ScheduleScreen extends StatefulWidget {
@@ -18,6 +19,7 @@ class ScheduleScreen extends StatefulWidget {
 
 class _ScheduleScreenState extends State<ScheduleScreen> {
   final ScheduleController controller = Get.put(ScheduleController());
+  final HomepageController _controller = HomepageController.to;
 
   @override
   Widget build(BuildContext context) {
@@ -187,6 +189,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
                       .isNotEmpty) {
                     setState(() {
                       controller.showProgressBar = true;
+                      _controller.getAllMedicationsData();
                     });
                     await controller.addSchedule(
                     );

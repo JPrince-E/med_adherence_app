@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
+
 // import 'package:go_router/go_router.dart';
 import 'package:med_adherence_app/features/controllers/auth_controller.dart';
 import 'package:med_adherence_app/features/views/login_screen.dart';
@@ -47,21 +48,45 @@ class _SignUpScreenState extends State<SignUpScreen> {
                             backgroundColor: AppColors.lighterGray,
                           ),
                     const SizedBox(height: 8),
-                    ElevatedButton(
-                      onPressed: () {
-                        // Trigger the image selection from the gallery
-
-                        // Ensure the UI is updated after image selection
-                        setState(() {
-                          authController.getFromGallery();
-                          authController.update();
-                        });
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.blue.shade200,
-                      ),
-                      child: const Text('Select Image'),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        IconButton(
+                          onPressed: () {
+                            setState(() {
+                              authController.getFromGallery();
+                              authController.update();
+                            });
+                          },
+                          icon: const Icon(Icons.image, color: Colors.blue,),
+                        ),
+                        IconButton(
+                          onPressed: () {
+                            setState(() {
+                              authController.getFromCamera();
+                              authController.update();
+                            });
+                          },
+                          icon: const Icon(Icons.camera_alt, color: Colors.blue),
+                        ),
+                      ],
                     ),
+
+                    // ElevatedButton(
+                    //   onPressed: () {
+                    //     // Trigger the image selection from the gallery
+                    //
+                    //     // Ensure the UI is updated after image selection
+                    //     setState(() {
+                    //       authController.getFromCamera();
+                    //       authController.update();
+                    //     });
+                    //   },
+                    //   style: ElevatedButton.styleFrom(
+                    //     backgroundColor: Colors.blue.shade200,
+                    //   ),
+                    //   child: const Text('Select Image'),
+                    // ),
                     const SizedBox(height: 20),
                     // TextFields for user input
                     TextField(

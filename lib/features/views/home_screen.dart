@@ -25,7 +25,7 @@ class _HomeScreenState extends State<HomeScreen> {
   int screenIndex = 0;
   String senderName = "";
   List tabScreenList = [
-    const HomePage(),
+    HomePage(userID: FirebaseAuth.instance.currentUser!.uid,),
     ScheduleScreen(
       userID: FirebaseAuth.instance.currentUser!.uid,
     ),
